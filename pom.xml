@@ -157,6 +157,7 @@
         <hibernate-jpamodelgen.version>1.2.0.Final</hibernate-jpamodelgen.version>
         <hibernate-jpa-api.version>1.0.1.Final</hibernate-jpa-api.version>
         <hsqldb.version>2.3.2</hsqldb.version>
+        <mysql.version>5.1.34</mysql.version>
         <icu4j.version>53.1</icu4j.version>
         <jackson2.version>2.3.3</jackson2.version>
         <jansi.version>1.11</jansi.version>
@@ -206,7 +207,7 @@
         <woodstox.version>4.3.0</woodstox.version>
         <xmlunit.version>1.5</xmlunit.version>
         <xstream.version>1.4.7</xstream.version>
-
+        
         <!-- 
          | uPortal uses this expression to determine whether the user is on a 
          | mobile device, such as a phone or a tablet, or a desktop/laptop 
@@ -232,6 +233,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
+                <scope>compile</scope>
+            </dependency>
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>stringtemplate</artifactId>

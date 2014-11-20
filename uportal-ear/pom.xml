@@ -17,6 +17,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        
+        <dependency>
             <groupId>org.jasig.portal</groupId>
             <artifactId>uportal-war</artifactId>
             <version>${project.version}</version>
