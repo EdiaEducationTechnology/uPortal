@@ -1,0 +1,8 @@
+    <dlm:fragment name="AcademicsForGroup2" ownerID="group2" precedence="340">
+        <dlm:audience evaluatorFactory="org.jasig.portal.layout.dlm.providers.GroupMembershipEvaluatorFactory">
+            <paren mode="OR">
+                <attribute mode="deepMemberOf" name="group4"/>
+                <attribute mode='memberOf' name='group4'/>
+            </paren>
+        </dlm:audience>
+    </dlm:fragment>

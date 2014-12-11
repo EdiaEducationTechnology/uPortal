@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<portlet-app xmlns="http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd" 
+	version="1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/portlet/portlet-app_1_0.xsd">
+	
+	<portlet>
+		<description>Basic LTI Portlet</description>
+		<portlet-name>basiclti-portlet</portlet-name>
+		<display-name>basiclti-portlet</display-name>
+		<portlet-class>au.edu.anu.portal.portlets.basiclti.BasicLTIPortlet</portlet-class>
+		
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+			<portlet-mode>VIEW</portlet-mode>
+			<portlet-mode>EDIT</portlet-mode>
+			<portlet-mode>CONFIG</portlet-mode>
+		</supports>
+		<supported-locale>en</supported-locale>
+		<portlet-info>
+			<title>Basic LTI connector</title>
+			<short-title>Basic LTI connector</short-title>
+			<keywords>connector, basiclti, lti</keywords>
+		</portlet-info>
+		
+		<!-- Pages: do not adjust -->
+		<init-param>
+			<name>viewUrl</name>
+			<value>/pages/view.jsp</value>
+		</init-param>
+		<init-param>
+			<name>proxyUrl</name>
+			<value>/pages/proxy.jsp</value>
+		</init-param>
+		<init-param>
+			<name>errorUrl</name>
+			<value>/pages/error.jsp</value>
+		</init-param>
+		<init-param>
+			<name>configUrl</name>
+			<value>/pages/config.jsp</value>
+		</init-param>
+		<init-param>
+			<name>editUrl</name>
+			<value>/pages/edit.jsp</value>
+		</init-param>
+		
+		
+		
+		
+		<!-- Adapter classes: do not adjust unless you have created your own adapter -->
+		<init-param>
+   			<name>adapter-class-standard</name>
+   			<value>au.edu.anu.portal.portlets.basiclti.adapters.StandardAdapter</value>
+		</init-param>
+		<init-param>
+   			<name>adapter-class-sakai</name>
+   			<value>au.edu.anu.portal.portlets.basiclti.adapters.SakaiAdapter</value>
+		</init-param>
+		<init-param>
+   			<name>adapter-class-peoplesoft</name>
+   			<value>au.edu.anu.portal.portlets.basiclti.adapters.PeoplesoftAdapter</value>
+		</init-param>
+		<init-param>
+			<name>adapter-class-noteflight</name>
+			<value>au.edu.anu.portal.portlets.basiclti.adapters.NoteflightAdapter</value>
+		</init-param>
+		<init-param>
+			<name>adapter-class-chemvantage</name>
+			<value>au.edu.anu.portal.portlets.basiclti.adapters.ChemvantageAdapter</value>
+		</init-param>
+		<init-param>
+			<name>adapter-class-wimba</name>
+			<value>au.edu.anu.portal.portlets.basiclti.adapters.WimbaAdapter</value>
+		</init-param>
+		<init-param>
+			<name>adapter-class-wikispaces</name>
+			<value>au.edu.anu.portal.portlets.basiclti.adapters.WikispacesAdapter</value>
+		</init-param>
+		
+		
+		<!-- attribute mapping configuration -->
+		<!-- 
+		These must match the 'name' value of the user-attributes below so that we can map this correctly in
+		different portal environments, or if your environment has this setup differently. 
+		uPortal: uid
+		Liferay: user.name.nickName 
+		-->
+		<init-param>
+   			<name>portal.attribute.mapping.username</name>
+   			<value>uid</value>
+		</init-param>
+		<init-param>
+   			<name>portal.attribute.mapping.firstName</name>
+   			<value>givenName</value>
+		</init-param>
+		<init-param>
+   			<name>portal.attribute.mapping.lastName</name>
+   			<value>sn</value>
+		</init-param>
+		<init-param>
+   			<name>portal.attribute.mapping.email</name>
+   			<value>mail</value>
+		</init-param>
+		<init-param>
+   			<name>portal.attribute.mapping.displayName</name>
+   			<value>displayName</value>
+		</init-param>
+		
+		
+		
+		
+	</portlet>
+	
+	<!--  Portlet user attributes: generally you don't need to adjust these unless the attributes are mapped differently to below.
+	Don't forget to change the mapping reference above, if you do change them -->
+	<user-attribute>
+		<name>uid</name>
+		<description>Username attribute</description>
+	</user-attribute>
+	<user-attribute>
+		<name>givenName</name>
+		<description>Given Name attribute</description>
+	</user-attribute>
+	<user-attribute>
+		<name>sn</name>
+		<description>Family Name attribute</description>
+	</user-attribute>
+	<user-attribute>
+		<name>mail</name>
+		<description>Email attribute</description>
+	</user-attribute>
+	<user-attribute>
+		<name>displayName</name>
+		<description>Display Name attribute</description>
+	</user-attribute>
+	
+   
+</portlet-app>
