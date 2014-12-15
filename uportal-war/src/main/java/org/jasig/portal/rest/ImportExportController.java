@@ -19,10 +19,14 @@
 
 package org.jasig.portal.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -106,6 +110,19 @@ public class ImportExportController {
 
         response.setStatus(HttpServletResponse.SC_OK);
     }
+
+    @RequestMapping(value="/create/fragment/group/{groupid}", method = RequestMethod.GET)
+    public void createFragmentWithLayout(@PathVariable("groupid") String groupId, 
+    		HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
+    	
+    	//creates the fragment definition by generating xml and importing it
+    	this.createFragmentDefinition(groupId, request);
+     	
+    	//Step 5: import default layout for fragment
+    	this.createFragmentLayout(groupId, request);
+    	
+    	response.setStatus(HttpServletResponse.SC_OK);
+    }
     
     protected BufferedXMLEventReader createSourceXmlEventReader(MultipartFile multipartFile) throws IOException {
         final InputStream inputStream = multipartFile.getInputStream();
@@ -127,6 +144,140 @@ public class ImportExportController {
         final PortalDataKey portalDataKey = new PortalDataKey(rootElement);
         bufferedXmlEventReader.reset();
         return portalDataKey;
+    }
+    
+    protected void createFragmentDefinition (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
+       	
+//    	//Step 0: check if the group doesn't have a team tab for 
+    	final IPerson person = personManager.getPerson(request);
+    	String userName = person.getUserName();
+    	
+//    	//Step 1: get group, validate access to group
+//    	
+//    	//Step 2: generate XML that would normally be uploaded by a file with an XML library
+    	final String fragmentName = "team_tab_"+groupId; 
+    	String fragmentDef = 
+    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    	    	+"<fragment-definition xmlns:dlm=\"http://org.jasig.portal.layout.dlm.config\" script=\"classpath://org/jasig/portal/io/import-fragment-definition_v3-1.crn\">"
+    	    	+    "<dlm:fragment name=\"" + fragmentName + "\" ownerID=\"" + userName + "\" precedence=\"10\">"
+    	    	+        "<dlm:audience evaluatorFactory=\"org.jasig.portal.layout.dlm.providers.GroupMembershipEvaluatorFactory\">"
+    	    	+            "<paren mode=\"OR\">"
+    	    	+                "<attribute mode=\"deepMemberOf\" name=\"" + groupId+ "\"/>"
+    	    	+            "</paren>"
+    	    	+        "</dlm:audience>"
+    	    	+    "</dlm:fragment>"
+    	    	+"</fragment-definition>";
+    	
+//    	//Step 3: feed this to the BufferedXMLEventReader and continue like normal
+//    	//Get a StAX reader for the source to determine info about the data to import
+    	
+    	final XMLInputFactory xmlInputFactory = this.xmlUtilities.getXmlInputFactory();
+    	InputStream inputStream = new ByteArrayInputStream(fragmentDef.getBytes("UTF-8"));
+    	XMLEventReader xmlEventReader = null;   	
+        try {
+            xmlEventReader = xmlInputFactory.createXMLEventReader("Fr2.fragment-definition.xml", inputStream);
+        }
+        catch (XMLStreamException e) {
+            throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
+        }    	    	 
+    	BufferedXMLEventReader buffXmlEvnetReader = new BufferedXMLEventReader(xmlEventReader, -1);
+    	final BufferedXMLEventReader bufferedXmlEventReader = buffXmlEvnetReader; 
+    	final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);   	
+
+
+    	//final EntityIdentifier ei = person.getEntityIdentifier();
+    	//final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
+    	
+    	//Step 4: for now remove this permission check, we can add one back in when we know the criteria
+//    	if (!ap.hasPermission("UP_SYSTEM", "IMPORT_ENTITY", portalDataKey.getName().getLocalPart())) {
+//    		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//    		return;
+//    	}
+    	try {
+	    	StAXSource fragmentSource = new StAXSource(bufferedXmlEventReader);
+	    	portalDataHandlerService.importData(fragmentSource);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw new IOException(e.getMessage(), e);
+    	}
+    }
+    
+    protected void createFragmentLayout (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
+    	   	
+    	final IPerson person = personManager.getPerson(request);
+    	
+    	String layoutXml = 
+    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    			+"<layout xmlns:dlm=\"http://www.uportal.org/layout/dlm\" script=\"classpath://org/jasig/portal/io/import-layout_v3-2.crn\""
+    			+"    username=\"" + person.getUserName() + "\" >"
+    			+"    <folder ID=\"s1\" hidden=\"false\" immutable=\"false\" name=\"Root folder\" type=\"root\" unremovable=\"true\">"
+    			+"        <!--"
+    			+"         | Hidden folders do not propagate to regular users, and fragment owner"
+    			+"         | accounts don't receive (other) fragments at all;  Fragment owners must"
+    			+"         | have their own copies of the minimal portlets required to view and manage"
+    			+"         | their own layouts."
+    			+"         +-->"
+    			+"        <folder ID=\"s2\" hidden=\"true\" immutable=\"true\" name=\"Page Top folder\" type=\"page-top\" unremovable=\"true\">"
+    			+"            <channel fname=\"dynamic-respondr-skin\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n3\"/>"
+    			+"            <channel fname=\"fragment-admin-exit\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n4\"/>"
+    			+"        </folder>"
+    			+"        <folder ID=\"s5\" hidden=\"true\" immutable=\"true\" name=\"Customize folder\" type=\"customize\" unremovable=\"true\">"
+    			+"            <channel fname=\"personalization-gallery\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n6\"/>"
+    			+"        </folder>"
+    			+"        <folder ID=\"s7\" dlm:deleteAllowed=\"false\" dlm:editAllowed=\"false\" dlm:moveAllowed=\"false\" hidden=\"false\" immutable=\"false\" name=\"" +groupId+ " Tab\" type=\"regular\" unremovable=\"false\">"
+    			+"            <structure-attribute>"
+    			+"                <name>externalId</name>"
+    			+"                <value>welcome</value>"
+    			+"            </structure-attribute>"
+    			+"            <folder ID=\"s8\" hidden=\"false\" immutable=\"false\" name=\"Column\" type=\"regular\" unremovable=\"false\">"
+    			+"                <structure-attribute>"
+    			+"                    <name>width</name>"
+    			+"                    <value>60%</value>"
+    			+"                </structure-attribute>"
+//    			+"                <channel fname=\"email-preview-demo\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n9\" dlm:moveAllowed=\"false\" dlm:deleteAllowed=\"false\"/>"
+//    			+"                <channel fname=\"weather\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n10\"/>"
+//    			+"                <channel fname=\"pbookmarks\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n11\" dlm:moveAllowed=\"false\" dlm:deleteAllowed=\"false\"/>"
+    			+"            </folder>"
+    			+"            <folder ID=\"s12\" hidden=\"false\" immutable=\"false\" name=\"Column\" type=\"regular\" unremovable=\"false\">"
+    			+"                <structure-attribute>"
+    			+"                    <name>width</name>"
+    			+"                    <value>40%</value>"
+    			+"                </structure-attribute>"
+//    			+"                <channel fname=\"calendar\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n13\"/>"
+    			+"            </folder>"
+    			+"        </folder>"
+    			+"    </folder>"
+    			+"</layout>";
+    	final XMLInputFactory xmlInputFactory = this.xmlUtilities.getXmlInputFactory();
+    	InputStream inputStream = new ByteArrayInputStream(layoutXml.getBytes("UTF-8"));
+    	XMLEventReader xmlEventReader = null;   	
+        try {
+            xmlEventReader = xmlInputFactory.createXMLEventReader("Fr2.fragment-definition.xml", inputStream);
+        }
+        catch (XMLStreamException e) {
+            throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
+        }    	    	 
+    	BufferedXMLEventReader buffXmlEvnetReader = new BufferedXMLEventReader(xmlEventReader, -1);
+    	final BufferedXMLEventReader bufferedXmlEventReader = buffXmlEvnetReader; 
+
+//    	final EntityIdentifier ei = person.getEntityIdentifier();
+//    	final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
+//    	final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);
+    	
+    	//Step 4: for now remove this permission check, we can add one back in when we know the criteria
+//    	if (!ap.hasPermission("UP_SYSTEM", "IMPORT_ENTITY", portalDataKey.getName().getLocalPart())) {
+//    		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//    		return;
+//    	}
+    	try {
+	    	StAXSource fragmentSource = new StAXSource(bufferedXmlEventReader);
+	    	portalDataHandlerService.importData(fragmentSource);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw new IOException(e.getMessage(), e);
+    	}
+    	
+    	
     }
     
     /**
@@ -187,4 +338,6 @@ public class ImportExportController {
 	    final PrintWriter responseWriter = response.getWriter();
 	    responseWriter.print(exportBuffer.getBuffer());
     }
+    
+    
 }

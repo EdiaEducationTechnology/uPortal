@@ -26,12 +26,12 @@
     
     <!-- Portlet Titlebar -->
     <div class="fl-widget-titlebar titlebar portlet-titlebar" role="sectionhead">
-        <h2 class="title" role="heading"><spring:message code="export.portlet.entities"/></h2>
+        <h2 class="title" role="heading">Create Team Tab</h2>
         <div class="toolbar" role="toolbar">
             <ul class="btn-group">
                 <li class="btn"><a class="button" href="<portlet:renderURL/>"><spring:message code="import"/></a></li>
                 <li class="btn"><a class="button" href="<portlet:renderURL><portlet:param name="action" value="delete"/></portlet:renderURL>"><spring:message code="delete"/></a></li>
-                <li class="btn"><a class="button" href="<portlet:renderURL><portlet:param name="action" value="create"/></portlet:renderURL>"><spring:message code="create.fragment"/></a></li>
+                <li class="btn"><a class="button" href="<portlet:renderURL><portlet:param name="action" value="export"/></portlet:renderURL>"><spring:message code="export"/></a></li>
             </ul>
         </div>
     </div>
@@ -41,7 +41,7 @@
         
         <!-- Note -->
         <div class="portlet-note" role="note">
-            <p>Select an entity to export. You can allow/disallow entity types using Portlet Preferences.  See uPortal's portlet.xml file for details.</p>
+            <p>This will create the Team Tab with empty layout</p>
         </div>
         
         <div class="portlet-form">
@@ -49,31 +49,28 @@
                 
                 <table class="purpose-layout">
                     <tr>
-                    <td class="label">
-                        <label class="portlet-form-label" for="${n}entityType"><spring:message code="type"/>:</label>
-                    </td>
-                    <td>
-                        <select id="${n}entityType" name="entityType">
-                            <option>[<spring:message code="select.type"/>]</option>
-                            <c:forEach items="${supportedTypes}" var="type">
-                                <option value="${fn:escapeXml(type.typeId)}"><spring:message code="${type.titleCode}"/></option>
-                            </c:forEach>
-                        </select>
-                    </td>
-                    </tr>
-                    <tr>
-                        <td class="label">
-                            <label class="portlet-form-label" for="${n}sysid"><spring:message code="id"/>:</label>
+                        <td >
+                            Group ID
                         </td>
                         <td>
-                            <input type="text" id="${n}sysid" name="sysid"/>
+                            <input type="text" id="groupid" name="groupid"/>
                         </td>
                     </tr>
+<!--                     <tr> -->
+<!--                         <td > -->
+<!--                             Owner ID -->
+<!--                         </td> -->
+<!--                         <td> -->
+<!--                             <input type="text" id="ownerid" name="ownerid"/> -->
+<!--                         </td> -->
+<!--                     </tr> -->
                 </table>
+                <br/>
                 <div class="buttons">
-                    <a id="${n}exportLink" class="button btn primary" target="_blank" href=""><spring:message code="export"/></a>
+                    <input class="button btn primary" type="submit" value="Create Team tab"/>
                 </div>
             </form>
+            <div id="messagebox"></div>
         </div>
         
     </div> <!-- end: portlet-content -->
@@ -83,17 +80,25 @@
     up.jQuery(document).ready(function () {
         var $ = up.jQuery;
         
-        var updateLink = function () {
-            var entityType, sysId, url;
-            
-            entityType = $("#${n}entityType").val();
-            sysId = $("#${n}sysid").val();
-            
-            $("#${n}exportLink").attr("href", "<c:url value="/api/entity/"/>" + entityType + "/" + sysId + "?download=true");
-        };
-        
-        $("#${n}entityType").change(updateLink);
-        $("#${n}sysid").change(updateLink);
-        
+        $("#${n}form").submit(function () {
+           var form, groupid, href;
+           
+           form = this;
+           
+           groupid = form.groupid.value;
+
+           $.ajax({
+        	   url: "<c:url value="/api/create/fragment/group/"/>" + groupid,
+               type: "GET",
+               statusCode: {
+                   200: function() {
+                       $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created</b></font>");
+                       setTimeout(function(){$("#messagebox").html("");},5000); 
+                   }
+               }              
+           });
+           
+           return false;
+        });
     });
 </script>
