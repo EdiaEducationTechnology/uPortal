@@ -207,6 +207,7 @@
         <woodstox.version>4.3.0</woodstox.version>
         <xmlunit.version>1.5</xmlunit.version>
         <xstream.version>1.4.7</xstream.version>
+        <apache.oauth.version>1.0.0</apache.oauth.version>
         
         <!-- 
          | uPortal uses this expression to determine whether the user is on a 
@@ -232,7 +233,12 @@
     </modules>
 
     <dependencyManagement>
-        <dependencies>
+    	<dependencies>
+    		<dependency>
+    	        <groupId>org.apache.oltu.oauth2</groupId>
+	            <artifactId>org.apache.oltu.oauth2.client</artifactId>
+            	<version>${apache.oauth.version}</version>
+        	</dependency>
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
@@ -379,6 +385,17 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${commons-httpcomponents.version}</version>
+				<exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+			</dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>

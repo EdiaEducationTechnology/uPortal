@@ -416,8 +416,9 @@
         <servlet-name>AuthenticationDispatcherServlet</servlet-name>
         <url-pattern>/Login</url-pattern>
         <url-pattern>/Logout</url-pattern>
+        <url-pattern>/Token</url-pattern>
     </servlet-mapping>
-
+    
     <mime-mapping>
         <extension>wbmp</extension>
         <mime-type>image/vnd.wap.wbmp</mime-type>
