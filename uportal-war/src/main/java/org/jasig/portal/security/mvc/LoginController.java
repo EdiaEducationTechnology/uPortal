@@ -21,6 +21,7 @@ package  org.jasig.portal.security.mvc;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -28,12 +29,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -43,17 +46,22 @@ import org.apache.oltu.oauth2.client.response.OAuthAuthzResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.jasig.portal.properties.PropertiesManager;
+import org.jasig.portal.rest.ImportExportController;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.url.IPortalUrlBuilder;
 import org.jasig.portal.url.IPortalUrlProvider;
 import org.jasig.portal.url.UrlType;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.google.common.collect.Lists;
 
 /**
  * Receives the username and password and tries to authenticate the user.
@@ -86,6 +94,9 @@ public class LoginController {
     private static final String CONEXT_OAUTH_KEY = PropertiesManager.getProperty("org.jasig.portal.surfconext.oauth.key");
 
     @Autowired
+    private ImportExportController importExportController;
+    
+    @Autowired
     public void setPersonManager(IPersonManager personManager) {
         this.personManager = personManager;
     }
@@ -103,9 +114,11 @@ public class LoginController {
      * @exception ServletException
      * @exception IOException
      * @throws OAuthSystemException 
+     * @throws XMLStreamException 
+     * @throws JSONException 
      */
     @RequestMapping("/Login")
-    public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, OAuthSystemException {
+    public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, OAuthSystemException, JSONException, XMLStreamException {
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Cache-Control", "no-cache");
         response.setDateHeader("Expires", 0);
@@ -188,17 +201,19 @@ public class LoginController {
 			String locationUri = authReq.getLocationUri();
 			response.sendRedirect(locationUri);
 		} else {
+			
+			handleSurfTeamStateSync(request, response);
+			
 			final String encodedRedirectURL = response.encodeRedirectURL(redirectTarget);
 			response.sendRedirect(encodedRedirectURL);
 		}
 
     }
 
-    @RequestMapping("Token")
+	@RequestMapping("Token")
 	public void code(HttpServletRequest req, HttpServletResponse response) throws Exception {
 		OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(req);
 		String code = oar.getCode();
-		
 		
 		OAuthClientRequest request = OAuthClientRequest
                 .tokenLocation("https://api.surfconext.nl/v1/oauth2/token")
@@ -211,9 +226,7 @@ public class LoginController {
 		
 		String locationUri = request.getLocationUri();
 		
-
-		HttpGet httpget = new HttpGet(
-				locationUri);
+		HttpGet httpget = new HttpGet(locationUri);
 		
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		
@@ -223,26 +236,54 @@ public class LoginController {
 		
 		JSONObject obj = getJSONOjectFromHttpEntity(entity);
 		
-		String access_token = obj.getString("access_token");
-		if (StringUtils.isNotEmpty(access_token)) {
+		String conextAccessToken = obj.getString("access_token");
+		if (StringUtils.isNotEmpty(conextAccessToken)) {
 			HttpSession session = req.getSession();
-			session.setAttribute("conext_access_token", access_token);
+			session.setAttribute("conext_access_token", conextAccessToken);
 			
-			
-			HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
-			getGroups.setHeader("Authorization", "Bearer " + access_token);
-			
-			
-			CloseableHttpResponse executeGetGroups = httpclient.execute(getGroups);
-			
-			HttpEntity getGroupsResponse = executeGetGroups.getEntity();
-			JSONObject jsonOjectFromHttpEntity = getJSONOjectFromHttpEntity(getGroupsResponse);
-			System.out.println(jsonOjectFromHttpEntity);
+			handleSurfTeamStateSync(req, response);
 		}
 		
 		//Hard coded for now as the request contains a different host
-		response.sendRedirect("http://localhost:8080/uPortal");
+		response.sendRedirect("/uPortal/Login");
 	}
+	
+	 private void handleSurfTeamStateSync(HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
+	    	String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
+	    	
+	    	
+	    	if (StringUtils.isNotEmpty(conextAccessToken)) {
+//	    		IPerson person = this.personManager.getPerson(request);
+	    		IPerson person = null;
+	    		CloseableHttpClient httpclient = HttpClients.createDefault();
+	    		
+				HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
+				
+				getGroups.setHeader("Authorization", "Bearer " + conextAccessToken);
+				CloseableHttpResponse executeGetGroups = httpclient.execute(getGroups);
+				HttpEntity getGroupsResponse = executeGetGroups.getEntity();
+				
+				JSONObject jsonOjectFromHttpEntity = getJSONOjectFromHttpEntity(getGroupsResponse);
+				
+				if (jsonOjectFromHttpEntity.has("entry")) {
+					JSONArray groups = jsonOjectFromHttpEntity.getJSONArray("entry");
+
+					for (int i = 0; i < groups.length(); i++) {
+						JSONObject group = (JSONObject) groups.get(i);
+						String groupId = group.getString("id");
+
+						String managerGroupId = "managers_" + groupId;
+						String memberGroupId = "members_" + groupId;
+
+						importExportController.createGroup(managerGroupId, new ArrayList(), person);
+						importExportController.createGroup(memberGroupId, new ArrayList(), person);
+						
+						importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), person);
+					}
+
+				}
+			}
+		}
 
 	private JSONObject getJSONOjectFromHttpEntity(HttpEntity entity)
 			throws IOException, JSONException {

@@ -111,6 +111,17 @@ public class ImportExportController {
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
+    @RequestMapping(value="/create/group", method = RequestMethod.POST)
+    public void createGroupAndAddMembers(
+    		@RequestParam("groupid") String groupid,
+    		@RequestParam("members") String memberGroups,
+    		HttpServletRequest request, 
+    		HttpServletResponse response) throws IOException, XMLStreamException {
+        
+    	
+    	response.setStatus(HttpServletResponse.SC_OK);
+    }
+    
     @RequestMapping(value="/create/fragment/group/{groupid}", method = RequestMethod.GET)
     public void createFragmentWithLayout(@PathVariable("groupid") String groupId, 
     		HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
@@ -144,6 +155,47 @@ public class ImportExportController {
         final PortalDataKey portalDataKey = new PortalDataKey(rootElement);
         bufferedXmlEventReader.reset();
         return portalDataKey;
+    }
+    
+    public void createGroup (String groupId, List<String> subgroupIds, IPerson person) throws IOException, XMLStreamException {
+       	
+//    	String userName = person.getUserName();
+    	
+    	String subgroupsXml = "";
+    	for (String subgroup : subgroupIds ) {
+    		subgroupsXml+="<group>" + subgroup + "</group>";
+    	}
+    	
+    	String groupDef = 
+    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?><group script=\"classpath://org/jasig/portal/io/import-group_membership_v3-2.crn\">"
+    			+"  <name>" + groupId + "</name>"
+    			+"  <entity-type>org.jasig.portal.security.IPerson</entity-type>"
+    			+"  <creator>admin</creator>"
+    			+"  <description>for anybody</description>"
+    			+"  <children>"
+    			+	subgroupsXml
+    			+"  </children>"
+    			+"</group>";
+    	
+    	final XMLInputFactory xmlInputFactory = this.xmlUtilities.getXmlInputFactory();
+    	InputStream inputStream = new ByteArrayInputStream(groupDef.getBytes("UTF-8"));
+    	XMLEventReader xmlEventReader = null;   	
+        try {
+            xmlEventReader = xmlInputFactory.createXMLEventReader("groupdefinition.group-membership.xml", inputStream);
+        }
+        catch (XMLStreamException e) {
+            throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
+        }    	    	 
+    	BufferedXMLEventReader buffXmlEvnetReader = new BufferedXMLEventReader(xmlEventReader, -1);
+    	final BufferedXMLEventReader bufferedXmlEventReader = buffXmlEvnetReader;  	
+
+    	try {
+	    	StAXSource fragmentSource = new StAXSource(bufferedXmlEventReader);
+	    	portalDataHandlerService.importData(fragmentSource);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw new IOException(e.getMessage(), e);
+    	}
     }
     
     protected void createFragmentDefinition (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
