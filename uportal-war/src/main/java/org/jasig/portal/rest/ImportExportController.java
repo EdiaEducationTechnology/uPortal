@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -40,12 +42,18 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jasig.portal.EntityIdentifier;
+import org.jasig.portal.groups.ICompositeGroupService;
+import org.jasig.portal.groups.IEntityGroup;
+import org.jasig.portal.groups.IGroupMember;
+import org.jasig.portal.groups.IGroupService;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
 import org.jasig.portal.io.xml.PortalDataKey;
+import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.security.IAuthorizationPrincipal;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.services.AuthorizationService;
+import org.jasig.portal.services.GroupService;
 import org.jasig.portal.xml.StaxUtils;
 import org.jasig.portal.xml.XmlUtilities;
 import org.jasig.portal.xml.stream.BufferedXMLEventReader;
@@ -73,6 +81,7 @@ public class ImportExportController {
     
     private IPersonManager personManager;
     private IPortalDataHandlerService portalDataHandlerService;
+    private ICompositeGroupService groupService;
     private XmlUtilities xmlUtilities;
 
     @Autowired
@@ -90,6 +99,11 @@ public class ImportExportController {
         this.portalDataHandlerService = portalDataHandlerService;
     }
 
+    @Autowired
+	public void setIGroupService(ICompositeGroupService groupService) {
+        this.groupService = groupService;
+    }
+    
     @RequestMapping(value="/import", method = RequestMethod.POST)
     public void importEntity(@RequestParam("file") MultipartFile entityFile, 
     		HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
@@ -97,7 +111,17 @@ public class ImportExportController {
         //Get a StAX reader for the source to determine info about the data to import
         final BufferedXMLEventReader bufferedXmlEventReader = createSourceXmlEventReader(entityFile);
         final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);
-
+        
+        List<String> members= new ArrayList();
+        members.add("everyone2");
+        members.add("everyone3");
+        members.add("everyone4");
+        List<String> persons= new ArrayList();
+        persons.add("gachello");
+        persons.add("teacher3");
+        persons.add("gatis2");
+        this.createGroup("group2", members, persons, null);
+        
         final IPerson person = personManager.getPerson(request);
 		final EntityIdentifier ei = person.getEntityIdentifier();
 	    final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
@@ -156,14 +180,59 @@ public class ImportExportController {
         bufferedXmlEventReader.reset();
         return portalDataKey;
     }
-    
-    public void createGroup (String groupId, List<String> subgroupIds, IPerson person) throws IOException, XMLStreamException {
-       	
+    public void updateGroupMembership (String groupId, List<String> subgroupNames, List<String> userNames, IPerson person) {
+    	EntityIdentifier[] results = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+    	List<IGroupMember> existingSubgroups = new ArrayList();
+    	IEntityGroup parentGroup = null;
+    	if (results.length > 0)  {
+    		IGroupMember parentGroupMemb = GroupService.getGroupMember(results[0]);
+    		if (parentGroupMemb.isGroup()) {
+    			parentGroup = (IEntityGroup) parentGroupMemb;
+    			
+            	for (String subgroupName : subgroupNames) {           		
+            		EntityIdentifier[] subGroups = this.groupService.searchForGroups(subgroupName,GroupService.IS,EntityEnum.GROUP.getClazz());
+            		IGroupMember member = GroupService.getGroupMember(subGroups[0]);
+            		if (member.isGroup()) {
+            			//existingSubgroups.add(member);
+            			parentGroup.addMember(member);
+            		}
+            	}
+            	for (String userName : userNames) {           		
+            		EntityIdentifier[] subGroups = this.groupService.searchForEntities(userName,GroupService.IS,EntityEnum.PERSON.getClazz());
+            		IGroupMember member = GroupService.getGroupMember(subGroups[0]);
+            		//if (member.isGroup()) {
+            			//existingSubgroups.add(member);
+            			parentGroup.addMember(member);
+            		//}
+            	}
+            	parentGroup.update();
+    		}
+
+
+    	} else {
+    		Exception e = new Exception ("Group not found: "+groupId);
+    		e.printStackTrace();
+    	}
+    	return;
+    }
+    public void createGroup (String groupId, List<String> subgroupNames, List<String> usernames, IPerson person) throws IOException, XMLStreamException {
+    	EntityIdentifier[] groups = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+    	if (groups.length > 0)  {
+    		this.updateGroupMembership(groupId, subgroupNames, usernames, person);    		
+    		System.out.println("Warning. Group already is in database ");
+    		return;
+    	}
+    	
 //    	String userName = person.getUserName();
     	
     	String subgroupsXml = "";
-    	for (String subgroup : subgroupIds ) {
+    	for (String subgroup : subgroupNames ) {
     		subgroupsXml+="<group>" + subgroup + "</group>";
+    	}
+    	
+    	String usersXml = "";
+    	for (String username : usernames ) {
+    		usersXml+="<literal>" + username + "</literal>";
     	}
     	
     	String groupDef = 
@@ -174,6 +243,7 @@ public class ImportExportController {
     			+"  <description>for anybody</description>"
     			+"  <children>"
     			+	subgroupsXml
+    			+ 	usersXml
     			+"  </children>"
     			+"</group>";
     	
