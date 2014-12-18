@@ -240,13 +240,32 @@ public class LoginController {
 		
 		String conextAccessToken = obj.getString("access_token");
 		if (StringUtils.isNotEmpty(conextAccessToken)) {
-			HttpSession session = req.getSession();
+			HttpSession session = req.getSession(false);
 			session.setAttribute("conext_access_token", conextAccessToken);
+			session.setAttribute("should_sync_conext_group_state", true);
 		}
 		
 		//Hard coded for now as the request contains a different host
-		response.sendRedirect("/uPortal/Login");
+		response.sendRedirect(getOAuthCodeCallbackHandlerUrl(req));
 	}
+	
+	private String getLoginLink(HttpServletRequest req) {
+		String scheme = req.getScheme() + "://";
+		String serverName = req.getServerName();
+		String serverPort = (req.getServerPort() == 80) ? "" : ":" + req.getServerPort();
+		String contextPath = req.getContextPath();
+		return scheme + serverName + serverPort + contextPath;
+	}
+
+	private String getOAuthCodeCallbackHandlerUrl(HttpServletRequest req) {
+		String scheme = req.getScheme() + "://";
+		String serverName = req.getServerName();
+		String serverPort = (req.getServerPort() == 80) ? "" : ":" + req.getServerPort();
+		String contextPath = req.getContextPath();
+		String pathInfo = (req.getPathInfo() == null) ? "" : req.getPathInfo();
+		return scheme + serverName + serverPort + contextPath + pathInfo;
+	}
+
 	
 	 private void handleSurfTeamStateSync(HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
 	    	String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
