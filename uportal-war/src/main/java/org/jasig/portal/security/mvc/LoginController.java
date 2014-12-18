@@ -191,6 +191,7 @@ public class LoginController {
 			//Force the three-legged oauth request
 			//  http://uportal.edia.nl/edia-conext-clientwebapp/start.html
 			OAuthClientRequest authReq = OAuthClientRequest
+					
 			   .authorizationLocation("https://api.surfconext.nl/v1/oauth2/authorize")
 			   .setClientId("https://uportal.edia.nl")
 			   .setResponseType("code")
@@ -202,6 +203,7 @@ public class LoginController {
 			response.sendRedirect(locationUri);
 		} else {
 			
+
 			handleSurfTeamStateSync(request, response);
 			
 			final String encodedRedirectURL = response.encodeRedirectURL(redirectTarget);
@@ -240,8 +242,6 @@ public class LoginController {
 		if (StringUtils.isNotEmpty(conextAccessToken)) {
 			HttpSession session = req.getSession();
 			session.setAttribute("conext_access_token", conextAccessToken);
-			
-			handleSurfTeamStateSync(req, response);
 		}
 		
 		//Hard coded for now as the request contains a different host
@@ -253,8 +253,7 @@ public class LoginController {
 	    	
 	    	
 	    	if (StringUtils.isNotEmpty(conextAccessToken)) {
-//	    		IPerson person = this.personManager.getPerson(request);
-	    		IPerson person = null;
+	    		IPerson person = this.personManager.getPerson(request);
 	    		CloseableHttpClient httpclient = HttpClients.createDefault();
 	    		
 				HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
@@ -271,14 +270,14 @@ public class LoginController {
 					for (int i = 0; i < groups.length(); i++) {
 						JSONObject group = (JSONObject) groups.get(i);
 						String groupId = group.getString("id");
-
+						//if group not found, then
 						String managerGroupId = "managers_" + groupId;
 						String memberGroupId = "members_" + groupId;
 
-						importExportController.createGroup(managerGroupId, new ArrayList(), person);
-						importExportController.createGroup(memberGroupId, new ArrayList(), person);
+						importExportController.createGroup(managerGroupId, new ArrayList(),new ArrayList(), person);
+						importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person);
 						
-						importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), person);
+						importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), new ArrayList(), person);
 					}
 
 				}
