@@ -112,15 +112,7 @@ public class ImportExportController {
         final BufferedXMLEventReader bufferedXmlEventReader = createSourceXmlEventReader(entityFile);
         final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);
         
-        List<String> members= new ArrayList();
-        members.add("everyone2");
-        members.add("everyone3");
-        members.add("everyone4");
-        List<String> persons= new ArrayList();
-        persons.add("gachello");
-        persons.add("teacher3");
-        persons.add("gatis2");
-        this.createGroup("group2", members, persons, null);
+
         
         final IPerson person = personManager.getPerson(request);
 		final EntityIdentifier ei = person.getEntityIdentifier();
