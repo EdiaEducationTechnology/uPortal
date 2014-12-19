@@ -22,6 +22,7 @@ package org.jasig.portal.utils.web;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.FilterChain;
@@ -109,7 +110,7 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
         String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
 
         if (StringUtils.isNotEmpty(conextAccessToken)) {
-            IPerson person = this.personManager.getPerson(request);
+            IPerson person = this.personManager.getPerson(request);            
             CloseableHttpClient httpclient = HttpClients.createDefault();
 
             HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
@@ -138,8 +139,12 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                     
                     importExportController.createGroup(managerGroupId, new ArrayList(), new ArrayList(), person, isManager);
                     importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person, isMember);
-
+                                        
                     importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), new ArrayList(), person, false);
+                    importExportController.createGroup("surfteams", Arrays.asList(groupId), new ArrayList(), person, false);
+                    
+                    importExportController.updateGroupMembership("Everyone", Arrays.asList("surfteams"), new ArrayList(), person);
+                    importExportController.updateGroupMembership("Subscribable Fragments", Arrays.asList(managerGroupId), new ArrayList(), person);
                 }
 
             }

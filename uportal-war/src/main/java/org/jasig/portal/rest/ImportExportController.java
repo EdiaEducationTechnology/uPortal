@@ -192,10 +192,11 @@ public class ImportExportController {
             	for (String userName : userNames) {           		
             		EntityIdentifier[] subGroups = this.groupService.searchForEntities(userName,GroupService.IS,EntityEnum.PERSON.getClazz());
             		IGroupMember member = GroupService.getGroupMember(subGroups[0]);
-            		//if (member.isGroup()) {
-            			//existingSubgroups.add(member);
-            			parentGroup.addMember(member);
-            		//}
+            		Iterator parents = member.getAllContainingGroups();
+//            		for (IGroupMember parent : parents) {
+//            			
+//            		}
+            		parentGroup.addMember(member);
             	}
             	parentGroup.update();
     		}
@@ -272,7 +273,8 @@ public class ImportExportController {
 //    	//Step 1: get group, validate access to group
 //    	
 //    	//Step 2: generate XML that would normally be uploaded by a file with an XML library
-    	final String fragmentName = "team_tab_"+groupId; 
+    	String[] splittedGroup = groupId.split(":");
+    	final String fragmentName = "team_tab_"+splittedGroup[splittedGroup.length-1]; 
     	String fragmentDef = 
     			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
     	    	+"<fragment-definition xmlns:dlm=\"http://org.jasig.portal.layout.dlm.config\" script=\"classpath://org/jasig/portal/io/import-fragment-definition_v3-1.crn\">"
@@ -322,7 +324,8 @@ public class ImportExportController {
     protected void createFragmentLayout (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
     	   	
     	final IPerson person = personManager.getPerson(request);
-    	
+    	String[] splittedGroup = groupId.split(":");
+    	final String tabName = splittedGroup[splittedGroup.length-1]; 
     	String layoutXml = 
     			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
     			+"<layout xmlns:dlm=\"http://www.uportal.org/layout/dlm\" script=\"classpath://org/jasig/portal/io/import-layout_v3-2.crn\""
@@ -341,7 +344,7 @@ public class ImportExportController {
     			+"        <folder ID=\"s5\" hidden=\"true\" immutable=\"true\" name=\"Customize folder\" type=\"customize\" unremovable=\"true\">"
     			+"            <channel fname=\"personalization-gallery\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n6\"/>"
     			+"        </folder>"
-    			+"        <folder ID=\"s7\" dlm:deleteAllowed=\"false\" dlm:editAllowed=\"false\" dlm:moveAllowed=\"false\" hidden=\"false\" immutable=\"false\" name=\"" +groupId+ " Tab\" type=\"regular\" unremovable=\"false\">"
+    			+"        <folder ID=\"s7\" dlm:deleteAllowed=\"false\" dlm:editAllowed=\"false\" dlm:moveAllowed=\"false\" hidden=\"false\" immutable=\"false\" name=\"" +tabName+ " Tab\" type=\"regular\" unremovable=\"false\">"
     			+"            <structure-attribute>"
     			+"                <name>externalId</name>"
     			+"                <value>welcome</value>"
