@@ -189,6 +189,11 @@
     </filter>
     
     <filter>
+        <filter-name>conextSyncGroupStateFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    
+    <filter>
         <filter-name>ExceptionLoggingFilter</filter-name>
         <filter-class>org.jasig.portal.web.ExceptionLoggingFilter</filter-class>
     </filter>
@@ -304,6 +309,11 @@
 
 	 <filter-mapping>
         <filter-name>createPortletCookieFilter</filter-name>
+        <servlet-name>RenderingDispatcherServlet</servlet-name>
+    </filter-mapping>
+
+	 <filter-mapping>
+        <filter-name>conextSyncGroupStateFilter</filter-name>
         <servlet-name>RenderingDispatcherServlet</servlet-name>
     </filter-mapping>
 

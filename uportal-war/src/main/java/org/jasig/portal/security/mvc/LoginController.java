@@ -202,10 +202,6 @@ public class LoginController {
 			String locationUri = authReq.getLocationUri();
 			response.sendRedirect(locationUri);
 		} else {
-			
-
-			handleSurfTeamStateSync(request, response);
-			
 			final String encodedRedirectURL = response.encodeRedirectURL(redirectTarget);
 			response.sendRedirect(encodedRedirectURL);
 		}
@@ -249,14 +245,6 @@ public class LoginController {
 		response.sendRedirect(getOAuthCodeCallbackHandlerUrl(req));
 	}
 	
-	private String getLoginLink(HttpServletRequest req) {
-		String scheme = req.getScheme() + "://";
-		String serverName = req.getServerName();
-		String serverPort = (req.getServerPort() == 80) ? "" : ":" + req.getServerPort();
-		String contextPath = req.getContextPath();
-		return scheme + serverName + serverPort + contextPath;
-	}
-
 	private String getOAuthCodeCallbackHandlerUrl(HttpServletRequest req) {
 		String scheme = req.getScheme() + "://";
 		String serverName = req.getServerName();
@@ -265,43 +253,6 @@ public class LoginController {
 		String pathInfo = (req.getPathInfo() == null) ? "" : req.getPathInfo();
 		return scheme + serverName + serverPort + contextPath + pathInfo;
 	}
-
-	
-	 private void handleSurfTeamStateSync(HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
-	    	String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
-	    	
-	    	
-	    	if (StringUtils.isNotEmpty(conextAccessToken)) {
-	    		IPerson person = this.personManager.getPerson(request);
-	    		CloseableHttpClient httpclient = HttpClients.createDefault();
-	    		
-				HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
-				
-				getGroups.setHeader("Authorization", "Bearer " + conextAccessToken);
-				CloseableHttpResponse executeGetGroups = httpclient.execute(getGroups);
-				HttpEntity getGroupsResponse = executeGetGroups.getEntity();
-				
-				JSONObject jsonOjectFromHttpEntity = getJSONOjectFromHttpEntity(getGroupsResponse);
-				
-				if (jsonOjectFromHttpEntity.has("entry")) {
-					JSONArray groups = jsonOjectFromHttpEntity.getJSONArray("entry");
-
-					for (int i = 0; i < groups.length(); i++) {
-						JSONObject group = (JSONObject) groups.get(i);
-						String groupId = group.getString("id");
-						//if group not found, then
-						String managerGroupId = "managers_" + groupId;
-						String memberGroupId = "members_" + groupId;
-
-						importExportController.createGroup(managerGroupId, new ArrayList(),new ArrayList(), person);
-						importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person);
-						
-						importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), new ArrayList(), person);
-					}
-
-				}
-			}
-		}
 
 	private JSONObject getJSONOjectFromHttpEntity(HttpEntity entity)
 			throws IOException, JSONException {
