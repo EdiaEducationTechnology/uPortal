@@ -172,7 +172,7 @@ public class ImportExportController {
         bufferedXmlEventReader.reset();
         return portalDataKey;
     }
-    public void updateGroupMembership (String groupId, List<String> subgroupNames, List<String> userNames, IPerson person) {
+    public void updateGroupMembership (String groupId, List<String> subgroupNames, List<String> userNames, IPerson person) {    	
     	EntityIdentifier[] results = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
     	List<IGroupMember> existingSubgroups = new ArrayList();
     	IEntityGroup parentGroup = null;
@@ -207,7 +207,10 @@ public class ImportExportController {
     	}
     	return;
     }
-    public void createGroup (String groupId, List<String> subgroupNames, List<String> usernames, IPerson person) throws IOException, XMLStreamException {
+    public void createGroup (String groupId, List<String> subgroupNames, List<String> usernames, IPerson person, boolean shouldJoinGroup) throws IOException, XMLStreamException {
+    	if (shouldJoinGroup) {
+    		usernames.add(person.getUserName());
+    	}
     	EntityIdentifier[] groups = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
     	if (groups.length > 0)  {
     		this.updateGroupMembership(groupId, subgroupNames, usernames, person);    		
