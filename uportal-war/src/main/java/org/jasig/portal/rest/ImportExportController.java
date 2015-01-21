@@ -372,7 +372,7 @@ public class ImportExportController {
     	InputStream inputStream = new ByteArrayInputStream(layoutXml.getBytes("UTF-8"));
     	XMLEventReader xmlEventReader = null;   	
         try {
-            xmlEventReader = xmlInputFactory.createXMLEventReader("Fr2.fragment-definition.xml", inputStream);
+            xmlEventReader = xmlInputFactory.createXMLEventReader("Fr2.fragment-layout.xml", inputStream);
         }
         catch (XMLStreamException e) {
             throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
