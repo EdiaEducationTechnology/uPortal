@@ -76,7 +76,7 @@
 
 .portlet .selection-basket a:hover,
 .portlet .selection-basket a:focus {
-    background-color: #FFFFCC;
+    background-color: #9999CC;
     color: #9F0000;
     background-image: url(/ResourceServingWebapp/rs/famfamfam/silk/1.3/delete.png);
 }
