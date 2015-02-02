@@ -124,6 +124,25 @@ public class ImportExportPortletController {
     	
         return new ModelAndView("/jsp/ImportExportPortlet/delete", model);
     }
+
+    /**
+     * Display the entity creation form view.
+     * 
+     * @param request
+     * @return
+     */
+    @RequestMapping(params="action=create")
+    public ModelAndView getCreateView(PortletRequest request) {
+    	Map<String,Object> model = new HashMap<String,Object>();
+    	
+        // add a list of all permitted export types
+    	final Iterable<IPortalDataType> exportPortalDataTypes = this.portalDataHandlerService.getExportPortalDataTypes();
+    	final List<IPortalDataType> types = getAllowedTypes(request, EXPORT_PERMISSION, exportPortalDataTypes);
+    	model.put("supportedTypes", types);
+    	
+        return new ModelAndView("/jsp/ImportExportPortlet/create", model);
+    }    
+    
     
     /**
      * Return a list of all permitted import/export types for the given permission

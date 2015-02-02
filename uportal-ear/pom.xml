@@ -17,6 +17,20 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.jasig.portlet</groupId>
+            <artifactId>basiclti-portlet</artifactId>
+            <version>${basiclti-portlet.version}</version>
+            <type>war</type>
+        </dependency>
+ 
+<!--        <dependency>
+            <groupId>org.jasig.portal.portlets-overlay</groupId>
+            <artifactId>basiclti-portlet</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+-->
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
@@ -37,12 +51,7 @@
             <type>war</type>
         </dependency>
 
-        <dependency>
-            <groupId>org.jasig.portal.portlets-overlay</groupId>
-            <artifactId>basiclti-portlet</artifactId>
-            <version>${project.version}</version>
-            <type>war</type>
-        </dependency>
+
         
         <dependency>
             <groupId>org.jasig.portal.portlets-overlay</groupId>
@@ -206,6 +215,12 @@
                 <configuration>
                     <fileNameMapping>no-version</fileNameMapping>
                     <modules>
+                        <webModule>
+                            <groupId>org.jasig.portlet</groupId>
+                            <artifactId>basiclti-portlet</artifactId>
+                            <bundleFileName>basiclti-portlet.war</bundleFileName>
+                            <contextRoot>/basiclti-portlet</contextRoot>
+                        </webModule>
                         <webModule>
                             <groupId>org.jasig.portal</groupId>
                             <artifactId>uportal-war</artifactId>

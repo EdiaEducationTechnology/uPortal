@@ -31,6 +31,7 @@
             <ul class="btn-group">
                 <li class="btn"><a class="button" href="<portlet:renderURL/>"><spring:message code="import"/></a></li>
                 <li class="btn"><a class="button" href="<portlet:renderURL><portlet:param name="action" value="delete"/></portlet:renderURL>"><spring:message code="delete"/></a></li>
+                <li class="btn"><a class="button" href="<portlet:renderURL><portlet:param name="action" value="create"/></portlet:renderURL>"><spring:message code="create.fragment"/></a></li>
             </ul>
         </div>
     </div>
