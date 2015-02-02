@@ -192,6 +192,7 @@
         <resource-server.version>1.0.41</resource-server.version>
         <servlet-api.version>3.0.1</servlet-api.version>
         <uportal-shibboleth-delegation-integration.version>1.2.0-SNAPSHOT</uportal-shibboleth-delegation-integration.version>
+        <portlet-ws-util.version>1.1.1</portlet-ws-util.version>
         <slf4j.version>1.7.7</slf4j.version>
         <spring-framework.version>3.1.4.RELEASE</spring-framework.version>
         <spring-ldap.version>1.3.1.RELEASE</spring-ldap.version>
@@ -789,6 +790,7 @@
                 <artifactId>uportal-ear-deployer</artifactId>
                 <version>${uportal-ear-deployer.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.jasig.portlet.utils</groupId>
                 <artifactId>portlet-jdbc-util</artifactId>
@@ -859,6 +861,11 @@
                 <artifactId>uportal-shibboleth-delegation-integration</artifactId>
                 <version>${uportal-shibboleth-delegation-integration.version}</version>
             </dependency>
+            <dependency>
+				<groupId>org.jasig.portlet.utils</groupId>
+				<artifactId>portlet-ws-util</artifactId>
+				<version>${portlet-ws-util.version}</version>
+			</dependency>
             <dependency> 
                 <groupId>org.jasypt</groupId> 
                 <artifactId>jasypt</artifactId> 
