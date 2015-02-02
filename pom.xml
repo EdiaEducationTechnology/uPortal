@@ -203,7 +203,8 @@
         <tomcat-jdbc.version>7.0.37</tomcat-jdbc.version>
         <uportal-ear-deployer.version>3.1.5</uportal-ear-deployer.version>
         <uportal-maven-plugin.version>1.0.1</uportal-maven-plugin.version>
-        <usertype.version>3.1.0.GA</usertype.version>
+        <uportal-shibboleth-delegation-integration.version>1.1.0</uportal-shibboleth-delegation-integration.version>
+	<usertype.version>3.1.0.GA</usertype.version>
         <woodstox.version>4.3.0</woodstox.version>
         <xmlunit.version>1.5</xmlunit.version>
         <xstream.version>1.4.7</xstream.version>
@@ -1151,6 +1152,28 @@
                 <artifactId>xmlunit</artifactId>
                 <version>${xmlunit.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.jasig.service</groupId>
+                <artifactId>uportal-shibboleth-delegation-integration</artifactId>
+                <version>${uportal-shibboleth-delegation-integration.version}</version>
+            </dependency>
+            <dependency>
+  	          <groupId>org.apache.pluto</groupId>
+       		  <artifactId>pluto-container</artifactId>
+            	  <version>1.1.7</version>
+            	  <type>jar</type>
+            	  <scope>provided</scope>
+            	  <exclusions>
+               		<exclusion>
+                    		<artifactId>cglib-full</artifactId>
+                    		<groupId>cglib</groupId>
+              		</exclusion>
+			<exclusion>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging-api</artifactId>
+			</exclusion>
+            	  </exclusions>
+             </dependency>
         </dependencies>
     </dependencyManagement>
     

@@ -151,5 +151,29 @@
     	<property name="personAttributeDao" ref="personAttributeDao" />
     </bean>
     -->
-    
+   <bean id="userInfoService" class="org.jasig.portal.portlet.container.services.MergingUserInfoService">
+    <property name="userInfoServices">
+        <list>
+            <ref bean="personDirectoryUserInfoService" />
+            <ref bean="casTicketUserInfoService" />
+            <ref bean="samlAssertionUserInfoService" /> <!-- this is a new bean defined below -->
+        </list>
+    </property>
+</bean>
+ 
+<bean id="samlAssertionUserInfoService" class="org.jasig.portal.portlet.container.services.SamlAssertionUserInfoService">
+    <property name="userInstanceManager" ref="userInstanceManager" />
+    <property name="portletWindowRegistry" ref="portletWindowRegistry" />
+    <property name="portletEntityRegistry" ref="portletEntityRegistry" />
+    <property name="portletDefinitionRegistry" ref="portletDefinitionRegistry" />
+    <property name="portalRequestUtils" ref="portalRequestUtils" />
+ 
+    <!-- These have to match what portlets declare for user attributes in portlet.xml -->
+    <property name="samlAssertionKey" value="samlAssertion" />
+    <property name="idpPublicKeysKey" value="idpPublicKeys" />
+ 
+    <!-- These have to match the values defined for the SamlAssertionFilter in web.xml -->
+    <property name="samlAssertionSessionKey" value="SAML Assertion" />
+    <property name="idpPublicKeysSessionKey" value="IdP Public Keys" />
+</bean> 
 </beans>

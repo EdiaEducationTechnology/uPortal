@@ -329,14 +329,9 @@
   -->
   <xsl:template name="external.login">
     <div id="portalCASLogin" class="fl-widget-content">
-      <a id="portalCASLoginLink" class="button" href="{$EXTERNAL_LOGIN_URL}" title="{upMsg:getMessage('sign.in.via.cas', $USER_LANG)}">
-        <span><xsl:value-of select="upMsg:getMessage('sign.in', $USER_LANG)"/><!--&#160;<span class="via-cas"><xsl:value-of select="upMsg:getMessage('with.cas', $USER_LANG)"/></span>--></span>
-      </a>
-      <p><xsl:value-of select="upMsg:getMessage('new.user.question', $USER_LANG)"/>&#160;
-        <a id="portalCASLoginNewLink" href="{$CAS_NEW_USER_URL}" title="{upMsg:getMessage('create.new.portal.account', $USER_LANG)}">
-          <xsl:value-of select="upMsg:getMessage('new.user', $USER_LANG)"/>
-        </a>.
-      </p>
+        <a id="portalCASLoginLink" class="button" href="/uPortal/Login" title="Shibboleth Login">
+            <span>USC Login</span>
+        </a>
     </div>
   </xsl:template>
   <!-- ========================================= -->
