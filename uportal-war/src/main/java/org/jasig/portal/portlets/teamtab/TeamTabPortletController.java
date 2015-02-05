@@ -21,6 +21,7 @@ package org.jasig.portal.portlets.teamtab;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jasig.portal.EntityIdentifier;
+import org.jasig.portal.groups.EntityGroupImpl;
 import org.jasig.portal.groups.ICompositeGroupService;
+import org.jasig.portal.groups.IEntityGroup;
+import org.jasig.portal.groups.IGroupMember;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
 import org.jasig.portal.io.xml.IPortalDataType;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
@@ -66,7 +70,7 @@ public class TeamTabPortletController {
     private IPortalDataHandlerService portalDataHandlerService;
     private ICompositeGroupService groupService;
     
-    @Autowired
+ 
     public ICompositeGroupService getGroupService() {
 		return groupService;
 	}
@@ -157,15 +161,42 @@ public class TeamTabPortletController {
     protected List<String> findAllManagerGroupsForUser (PortletRequest request) {
         final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
 		final IPerson person = personManager.getPerson(httpServletRequest);
+		EntityIdentifier personEntity = person.getEntityIdentifier(); 
+
+		ArrayList<String> groupNames = new ArrayList<String>();
 		
-//    	EntityIdentifier[] groups = this.groupService.searchForGroups(groupId, GroupService.IS, EntityEnum.GROUP.getClazz());
-//    	if (groups.length > 0)  {
-//
-//    	}
-    	ArrayList<String> groupNames = new ArrayList<String>();
-    	groupNames.add("urn:collab:group:surfteams.nl:nl:surfnet:diensten:edia_uportal_group_1");
-    	groupNames.add("urn:collab:group:surfteams.nl:nl:surfnet:diensten:edia_uportal_group_2");
-    	groupNames.add("urn:collab:group:surfteams.nl:nl:surfnet:diensten:edia_uportal_group_3");
+    	EntityIdentifier[] surfteams 	= this.groupService.searchForGroups("surfteams", GroupService.IS, EntityEnum.GROUP.getClazz());    	
+    	
+    	if (surfteams.length > 0)  {
+    		IGroupMember surfTeam = GroupService.getGroupMember(surfteams[0]);
+    		Iterator<IGroupMember> surfSubGroups = surfTeam.getAllMembers();
+    		while (surfSubGroups.hasNext()) {
+    			IGroupMember surfSubGroup = surfSubGroups.next();
+    			
+    			if (surfSubGroup.isGroup()) {
+    				
+	        		Iterator<IGroupMember> surfSubSubGroups = surfSubGroup.getAllMembers();
+	        		while (surfSubSubGroups.hasNext()) {
+	        			IGroupMember surfSubSubGroup = surfSubSubGroups.next();
+	        			if (surfSubSubGroup.isGroup()) {
+    						EntityGroupImpl possiblyManagerGroup = (EntityGroupImpl) surfSubSubGroup; 
+	        				if (possiblyManagerGroup.getName().split(":")[0].equals("managers_urn")) {	  
+	        	        		Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
+	        	        		while (surfSubSubGroupUsers.hasNext()) {
+	        	        			IGroupMember user = surfSubSubGroupUsers.next();
+	        	        			if (user.isEntity() && user.getKey().equals(person.getUserName())) {
+	        	        				EntityGroupImpl surfSubGroupImpl = (EntityGroupImpl) surfSubGroup; 
+	        	        				groupNames.add(surfSubGroupImpl.getName());
+	        	        			}
+	        	        			
+	        	        		}	
+	        				}
+	        			}
+	        		}
+    			}
+    			
+    		}
+    	}
     	return groupNames;
     }
 }
