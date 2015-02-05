@@ -24,17 +24,12 @@
 <!-- Portlet -->
 <div class="fl-widget portlet imp-exp view-export" role="section">
     
-    <!-- Portlet Titlebar -->
-    <div class="fl-widget-titlebar titlebar portlet-titlebar" role="sectionhead">
-        <h2 class="title" role="heading">Create Team Tab</h2>
-    </div>
-    
     <!-- Portlet Content -->
     <div class="fl-widget-content content portlet-content" role="main">
         
         <!-- Note -->
         <div class="portlet-note" role="note">
-            <p>This will create the Team Tab with empty layout</p>
+            <p style="font-size: 16px;">Select a team</p>
         </div>
         
         <div class="portlet-form">
@@ -42,11 +37,8 @@
                 
                 <table class="purpose-layout">
                     <tr>
-                        <td >
-                            Group ID
-                        </td>
                         <td>
-			             <select id="${n}groupid" name="groupid">
+                         <select id="${n}groupid" name="groupid" max-width="90%">
                             <option></option>
                             <c:forEach items="${groupNames}" var="name">
                                 <option value="${fn:escapeXml(name)}"><spring:message code="${name}"/></option>
@@ -57,7 +49,7 @@
                 </table>
                 <br/>
                 <div class="buttons">
-                    <input class="button btn primary" type="submit" value="Create Team tab"/>
+                    <input class="button btn primary create-team-tab" type="submit" value="Create Team tab" disabled="disabled"/>
                 </div>
             </form>
             <div id="messagebox"></div>
@@ -75,13 +67,21 @@
               },5000); 
             },
             $ = up.jQuery;
-        
+
+        $("[name='groupid']").on('change', function () {
+            if ($(this).val()) {
+                $('.create-team-tab').removeAttr('disabled');
+            } else {
+                $('.create-team-tab').attr('disabled', 'disabled');
+            }
+        });
+
         $("#${n}form").on('submit', function () {
           var groupId = $("[name='groupid']", this).val()
 
           // TODO: make this a POST, change controller, we are creating, not getting
           $.ajax({
-              url: "<c:url value=\"/api/create/fragment/group/\"/>" + groupId,
+              url: '<c:url value="/api/create/fragment/group/"/>' + groupId,
               type: "GET",
               statusCode: {
                 200: function() {
