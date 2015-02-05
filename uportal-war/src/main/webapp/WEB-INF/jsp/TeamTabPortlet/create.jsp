@@ -68,26 +68,27 @@
 
 <script type="text/javascript">
     up.jQuery(document).ready(function () {
-        var $ = up.jQuery;
+        var handleSuccesfulTeamTabCreation = function () {
+              $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created</b></font>");
+              setTimeout(function(){
+                $("#messagebox").html("");
+              },5000); 
+            },
+            $ = up.jQuery;
         
-        $("#${n}form").submit(function () {
-           var form, groupid, href;
-           
-           form = this;
-           
-           groupid = form.groupid.value;
+        $("#${n}form").on('submit', function () {
+          var groupId = $("[name='groupid']", this).val()
 
-           $.ajax({
-        	   url: "<c:url value="/api/create/fragment/group/"/>" + groupid,
-               type: "GET",
-               statusCode: {
-                   200: function() {
-                       $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created</b></font>");
-                       setTimeout(function(){$("#messagebox").html("");},5000); 
-                   }
-               }              
+          // TODO: make this a POST, change controller, we are creating, not getting
+          $.ajax({
+              url: "<c:url value=\"/api/create/fragment/group/\"/>" + groupId,
+              type: "GET",
+              statusCode: {
+                200: function() {
+                  handleSuccesfulTeamTabCreation();
+                }
+              }              
            });
-           
            return false;
         });
     });
