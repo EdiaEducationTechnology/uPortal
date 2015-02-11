@@ -356,7 +356,7 @@
     <!-- SAML filter -->
     <filter-mapping>
         <filter-name>SamlAssertionFilter</filter-name>
-        <servlet-name>Login</servlet-name>
+        <servlet-name>/Login</servlet-name>
     </filter-mapping>
 
     <!-- Supports view rendering -->
