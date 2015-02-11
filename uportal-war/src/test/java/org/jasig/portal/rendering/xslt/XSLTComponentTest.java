@@ -99,10 +99,10 @@ public class XSLTComponentTest {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
         dbf.setValidating(false);
-        dbf.setFeature("http://xml.org/sax/features/namespaces", false);
-        dbf.setFeature("http://xml.org/sax/features/validation", false);
-        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        dbf.setAttribute("http://xml.org/sax/features/namespaces", false);
+        dbf.setAttribute("http://xml.org/sax/features/validation", false);
+        dbf.setAttribute("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+        dbf.setAttribute("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         
         final DocumentBuilder db = dbf.newDocumentBuilder();
         
