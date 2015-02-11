@@ -162,18 +162,5 @@
 	        </list>
 	    </property>
 	</bean>
-    
-	<bean id="samlAssertionUserInfoService" class="org.jasig.portal.portlet.container.services.SamlAssertionUserInfoService">
-	    <property name="portletWindowRegistry" ref="portletWindowRegistry" />
-	    <property name="portletDefinitionRegistry" ref="portletDefinitionRegistry" />
-	    <property name="portalRequestUtils" ref="portalRequestUtils" />
-	 
-	    <!-- These have to match what portlets declare for user attributes in portlet.xml -->
-	    <property name="samlAssertionKey" value="samlAssertion" />
-	    <property name="idpPublicKeysKey" value="idpPublicKeys" />
-	 
-	    <!-- These have to match the values defined for the SamlAssertionFilter in web.xml -->
-	    <property name="samlAssertionSessionKey" value="SAML Assertion" />
-	    <property name="idpPublicKeysSessionKey" value="IdP Public Keys" />
-	</bean>    
+
 </beans>

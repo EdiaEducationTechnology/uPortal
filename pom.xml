@@ -205,7 +205,6 @@
         <tomcat-jdbc.version>7.0.37</tomcat-jdbc.version>
         <uportal-ear-deployer.version>3.1.5</uportal-ear-deployer.version>
         <uportal-maven-plugin.version>1.0.1</uportal-maven-plugin.version>
-        <uportal-shibboleth-delegation-integration.version>1.1.0</uportal-shibboleth-delegation-integration.version>
 	<usertype.version>3.1.0.GA</usertype.version>
         <woodstox.version>4.3.0</woodstox.version>
         <xmlunit.version>1.5</xmlunit.version>

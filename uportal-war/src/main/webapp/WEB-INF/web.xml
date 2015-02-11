@@ -96,7 +96,6 @@
             <param-name>proxyReceptorUrl</param-name>
             <param-value>/CasProxyServlet</param-value>
         </init-param>
-	 -->
         <!--
          | For CAS PGT replication for CAS ClearPass in a clustered uPortal environment.
          | See "Replicating PGT using "proxyGrantingTicketStorageClass" and Distributed Caching" in
@@ -108,6 +107,7 @@
             <param-name>proxyGrantingTicketStorageClass</param-name>
             <param-value>org.jasig.cas.client.proxy.EhcacheBackedProxyGrantingTicketStorageImpl</param-value>
         </init-param>
+        -->
     </filter>
 	 -->
     <!--
