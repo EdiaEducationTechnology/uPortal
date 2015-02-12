@@ -173,6 +173,23 @@
         </portlet-info> 
     </portlet> 
 
+    <portlet> 
+        <portlet-name>TeamTabPortlet</portlet-name>  
+        <portlet-class>org.springframework.web.portlet.DispatcherPortlet</portlet-class>
+        <init-param>
+            <name>contextConfigLocation</name>
+            <value>/WEB-INF/classes/properties/contexts/portlet/TeamTabPortlet-portlet.xml</value>
+        </init-param>
+        <expiration-cache>-1</expiration-cache>
+        <supports> 
+            <mime-type>text/html</mime-type>  
+            <portlet-mode>view</portlet-mode> 
+        </supports>  
+        <portlet-info> 
+            <title>TeamTabPortlet</title> 
+        </portlet-info> 
+    </portlet> 
+
     <portlet>
         <portlet-name>IFrame</portlet-name>
         <display-name xml:lang="en">IFrame</display-name>
