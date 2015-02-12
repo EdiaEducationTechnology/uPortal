@@ -267,6 +267,7 @@
                                 <value>uid</value>
                                 <value>username</value>
                                 <value>user.login.id</value>
+                                <value>Shib-uid</value>
                             </set>
                         </entry>
                     </map>
