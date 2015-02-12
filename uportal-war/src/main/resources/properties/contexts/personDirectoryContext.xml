@@ -102,7 +102,13 @@
             <entry key="Shib-surName" value="sn" />
             <entry key="Shib-givenName" value="givenName" />
             <entry key="Shib-HomeOrg" value="schacHomeOrganization" />
-            <entry key="Shib-uid" value="uid" />
+            <entry key="Shib-uid">
+               <set>
+                    <value>uid</value>
+                    <value>username</value>
+                    <value>user.login.id</value>
+                </set>
+            </entry>
             <entry key="Shib-eduPersonAff" value="eduPersonAffiliation" />
             <entry key="eduPersonPrincipalName" value="eduPersonPrincipalName" />
             <entry key="Shib-preferredLanguage" value="preferredLanguage" />
