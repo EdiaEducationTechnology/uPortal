@@ -32,6 +32,7 @@
     </portlet-descriptor>
     <category>Development</category>
     <group>Portal Administrators</group>
+    <group>Fragment Owners</group>
     <parameter>
         <name>disableDynamicTitle</name>
         <value>false</value>

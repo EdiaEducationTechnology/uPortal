@@ -37,6 +37,7 @@ import org.jasig.portal.groups.IEntityGroup;
 import org.jasig.portal.groups.IGroupMember;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
 import org.jasig.portal.io.xml.IPortalDataType;
+import org.jasig.portal.portlet.registry.IPortletDefinitionRegistry;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.security.IAuthorizationPrincipal;
 import org.jasig.portal.security.IPerson;
@@ -69,9 +70,21 @@ public class TeamTabPortletController {
     private IPortalRequestUtils portalRequestUtils;
     private IPortalDataHandlerService portalDataHandlerService;
     private ICompositeGroupService groupService;
-    
+    private IPortletDefinitionRegistry portletDefinitionRegistry;
  
-    public ICompositeGroupService getGroupService() {
+    
+    
+    public IPortletDefinitionRegistry getPortletDefinitionRegistry() {
+		return portletDefinitionRegistry;
+	}
+    
+    @Autowired
+    public void setPortletDefinitionRegistry(
+			IPortletDefinitionRegistry portletDefinitionRegistry) {
+		this.portletDefinitionRegistry = portletDefinitionRegistry;
+	}
+	
+	public ICompositeGroupService getGroupService() {
 		return groupService;
 	}
     @Autowired
@@ -161,7 +174,6 @@ public class TeamTabPortletController {
     protected List<String> findAllManagerGroupsForUser (PortletRequest request) {
         final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
 		final IPerson person = personManager.getPerson(httpServletRequest);
-		EntityIdentifier personEntity = person.getEntityIdentifier(); 
 
 		ArrayList<String> groupNames = new ArrayList<String>();
 		
@@ -180,16 +192,21 @@ public class TeamTabPortletController {
 	        			IGroupMember surfSubSubGroup = surfSubSubGroups.next();
 	        			if (surfSubSubGroup.isGroup()) {
     						EntityGroupImpl possiblyManagerGroup = (EntityGroupImpl) surfSubSubGroup; 
-	        				if (possiblyManagerGroup.getName().split(":")[0].equals("managers_urn")) {	  
-	        	        		Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
-	        	        		while (surfSubSubGroupUsers.hasNext()) {
-	        	        			IGroupMember user = surfSubSubGroupUsers.next();
-	        	        			if (user.isEntity() && user.getKey().equals(person.getUserName())) {
-	        	        				EntityGroupImpl surfSubGroupImpl = (EntityGroupImpl) surfSubGroup; 
-	        	        				groupNames.add(surfSubGroupImpl.getName());
-	        	        			}
-	        	        			
-	        	        		}	
+	        				if (possiblyManagerGroup.getName().split(":")[0].equals("managers_urn")) {	 
+	        					if (person.getUserName().equals("admin")) {
+	        						EntityGroupImpl surfSubGroupImpl = (EntityGroupImpl) surfSubGroup; 
+        	        				groupNames.add(surfSubGroupImpl.getName());
+	        					} else {
+		        	        		Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
+		        	        		while (surfSubSubGroupUsers.hasNext()) {
+		        	        			IGroupMember user = surfSubSubGroupUsers.next();
+		        	        			if (user.isEntity() && user.getKey().equals(person.getUserName())) {
+		        	        				EntityGroupImpl surfSubGroupImpl = (EntityGroupImpl) surfSubGroup; 
+		        	        				groupNames.add(surfSubGroupImpl.getName());
+		        	        			}
+		        	        			
+		        	        		}	
+	        					}
 	        				}
 	        			}
 	        		}
@@ -198,5 +215,10 @@ public class TeamTabPortletController {
     		}
     	}
     	return groupNames;
+    }
+    
+    protected List<String> getPortletUserGroups(String portletName) {
+    	
+    	return null;
     }
 }
