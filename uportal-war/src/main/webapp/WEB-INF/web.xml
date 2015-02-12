@@ -348,15 +348,15 @@
         <servlet-name>RenderingDispatcherServlet</servlet-name>
     </filter-mapping>
 
-    <filter-mapping>
-        <filter-name>remoteCookieCheckFilter</filter-name>
-        <url-pattern>/Login</url-pattern>
-    </filter-mapping>
-
     <!-- SAML filter -->
     <filter-mapping>
         <filter-name>SamlAssertionFilter</filter-name>
-        <servlet-name>/Login</servlet-name>
+        <url-pattern>/Login</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>remoteCookieCheckFilter</filter-name>
+        <url-pattern>/Login</url-pattern>
     </filter-mapping>
 
     <!-- Supports view rendering -->

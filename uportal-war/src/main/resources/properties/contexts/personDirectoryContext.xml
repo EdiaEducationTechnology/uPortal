@@ -97,15 +97,15 @@
     <property name="processingPosition" value="BOTH" />
     <property name="headerAttributeMapping">
         <util:map>
-            <entry key="mail" value="mail" />
-            <entry key="displayName" value="displayName" />
-            <entry key="sn" value="sn" />
-            <entry key="givenName" value="givenName" />
-            <entry key="schacHomeOrganization" value="schacHomeOrganization" />
-            <entry key="uid" value="uid" />
-            <entry key="eduPersonAffiliation" value="eduPersonAffiliation" />
+            <entry key="Shib-email" value="mail" />
+            <entry key="Shib-displayName" value="displayName" />
+            <entry key="Shib-surName" value="sn" />
+            <entry key="Shib-givenName" value="givenName" />
+            <entry key="Shib-HomeOrg" value="schacHomeOrganization" />
+            <entry key="Shib-uid" value="uid" />
+            <entry key="Shib-eduPersonAff" value="eduPersonAffiliation" />
             <entry key="eduPersonPrincipalName" value="eduPersonPrincipalName" />
-            <entry key="preferredLanguage" value="preferredLanguage" />
+            <entry key="Shib-preferredLanguage" value="preferredLanguage" />
         </util:map>
     </property>
 </bean>
