@@ -37,7 +37,9 @@ import javax.portlet.ReadOnlyException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ValidatorException;
+import javax.servlet.http.HttpServletRequest;
 
+import main.java.au.edu.anu.portal.portlets.basiclti.utils.LtiPortletControllerClient;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -408,6 +410,41 @@ public class BasicLTIPortlet extends GenericPortlet{
 			params.put("lis_person_name_family", userInfo.get(attributeMappingForLastName));
 			params.put("lis_person_name_full", userInfo.get(attributeMappingForDisplayName));
 			params.put("lis_person_contact_email_primary", userInfo.get(attributeMappingForEmail));
+			
+	    	HttpServletRequest portalRequest = (HttpServletRequest) request.getAttribute("org.jasig.portal.utils.web.PortletHttpServletRequestWrapper.PORTLET_HTTP_SERVLET_REQUEST");
+			System.out.println("Path info: " + portalRequest.getPathInfo());
+			String[] path = portalRequest.getPathInfo().split("/");
+			String groupId = path[1];
+			System.out.println("Gets so far");
+			String userName = userInfo.get(attributeMappingForUsername).toString();
+			
+			LtiPortletControllerClient client = new LtiPortletControllerClient();
+			String roles = null;
+			String resourceLinkId = null;
+			String url = "http://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
+			try {
+				HashMap map = client.sendHttpGet(url, "");
+				System.out.println(map.get("roles"));
+				
+				roles 			= (String) map.get("roles");
+				resourceLinkId 	= (String) map.get("resource_link_id");
+				
+				System.out.println("Roles: " + roles + " resourceLinkId: " + resourceLinkId);
+				
+				//if (!params.containsKey("roles")) {
+					//add required basic LTI fields				
+					//params.put("roles", getPortletNamespace(response));
+					params.put("roles", roles);
+				//}
+				
+				//if (!params.containsKey("resource_link_id")) {
+					//add required basic LTI fields				
+					//params.put("resource_link_id", getPortletNamespace(response));
+					params.put("resource_link_id", resourceLinkId);
+				//}
+			} catch (Exception e) {
+				System.out.println(e.getStackTrace());
+			}
 			
 			if (!params.containsKey("resource_link_id")) {
 				//add required basic LTI fields

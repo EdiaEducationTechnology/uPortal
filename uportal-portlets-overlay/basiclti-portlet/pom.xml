@@ -40,11 +40,11 @@
     </organization>
 
   	<scm>
-		<connection>scm:git:git@github.com:Jasig/basiclti-portlet.git</connection>
+	<!--	<connection>scm:git:git@github.com:Jasig/basiclti-portlet.git</connection>
       	<developerConnection>scm:git:git@github.com:Jasig/basiclti-portlet.git</developerConnection>
       	<url>scm:git:git@github.com:Jasig/basiclti-portlet.git</url>
-    <tag>basiclti-portlet-1.4.2</tag>
-  </scm> 
+    	<tag>basiclti-portlet-1.4.2</tag>  --> 
+  	</scm>
   
     <dependencies>
   		
@@ -107,6 +107,12 @@
             <version>1.5.8</version>
         </dependency>
 		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.5.1</version>
+		</dependency>
+
 		
 		<!--  external shared dependencies -->
 		<dependency>
