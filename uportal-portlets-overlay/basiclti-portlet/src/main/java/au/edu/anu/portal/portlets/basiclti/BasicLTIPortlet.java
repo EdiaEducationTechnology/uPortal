@@ -421,27 +421,19 @@ public class BasicLTIPortlet extends GenericPortlet{
 			LtiPortletControllerClient client = new LtiPortletControllerClient();
 			String roles = null;
 			String resourceLinkId = null;
-			String url = "http://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
+			
 			try {
-				HashMap map = client.sendHttpGet(url, "");
+				HashMap map = client.getRoleAndResourcelink(groupId, userName, "");
 				System.out.println(map.get("roles"));
 				
 				roles 			= (String) map.get("roles");
 				resourceLinkId 	= (String) map.get("resource_link_id");
 				
 				System.out.println("Roles: " + roles + " resourceLinkId: " + resourceLinkId);
-				
-				//if (!params.containsKey("roles")) {
-					//add required basic LTI fields				
-					//params.put("roles", getPortletNamespace(response));
-					params.put("roles", roles);
-				//}
-				
-				//if (!params.containsKey("resource_link_id")) {
-					//add required basic LTI fields				
-					//params.put("resource_link_id", getPortletNamespace(response));
-					params.put("resource_link_id", resourceLinkId);
-				//}
+
+				params.put("roles", roles);	
+				params.put("resource_link_id", resourceLinkId);
+
 			} catch (Exception e) {
 				System.out.println(e.getStackTrace());
 			}

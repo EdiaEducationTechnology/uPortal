@@ -13,9 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LtiPortletControllerClient {
 	// HTTP GET request
-		public HashMap sendHttpGet(String url, final String USER_AGENT) throws Exception {
+		public HashMap getRoleAndResourcelink(String groupId, String userName, final String USER_AGENT) throws Exception {
 
-			// String url = "http://www.google.com/search?q=developer";
+			String url = "http://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
 
 			HttpClient client = new DefaultHttpClient();
 			HttpGet request = new HttpGet(url);
@@ -44,13 +44,4 @@ public class LtiPortletControllerClient {
 			return ltiData;
 		}
 		
-		public static void main(String[] args) {
-			LtiPortletControllerClient client = new LtiPortletControllerClient();
-			try {
-				HashMap map = client.sendHttpGet("http://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/local_62/user/owner1", "");
-				System.out.println(map.get("roles"));
-			} catch (Exception e) {
-				System.out.println(e.getStackTrace());
-			}
-		}
 }
