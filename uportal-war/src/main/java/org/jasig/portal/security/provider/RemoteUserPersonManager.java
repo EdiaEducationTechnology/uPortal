@@ -82,25 +82,24 @@ public class RemoteUserPersonManager extends AbstractPersonManager {
 			//
 			// If a RemoteUserSecurityContext does not already exist, we create one and populate the REMOTE_USER field.
 			
-			ISecurityContext context = null;
-			Enumeration subContexts = null;
 			boolean remoteUserSecurityContextExists = false;
-			
 			// Retrieve existing security contexts.
-			context = person.getSecurityContext( );			
-			if ( context != null )
-			    subContexts = context.getSubContexts( );			
+			ISecurityContext context = person.getSecurityContext( );			
 			
-			if ( subContexts != null ) {			    			
-				while ( subContexts.hasMoreElements( ) ) {
-				    ISecurityContext ctx = (ISecurityContext)subContexts.nextElement( );
-				    // Check to see if a RemoteUserSecurityContext already exists, and set the REMOTE_USER
-				    if ( ctx instanceof RemoteUserSecurityContext ) {
-				        RemoteUserSecurityContext remoteuserctx = (RemoteUserSecurityContext)ctx;
-				        remoteuserctx.setRemoteUser( remoteUser );
-				        remoteUserSecurityContextExists = true;
-				    }			        
-				}			
+			if ( context != null ) {
+				@SuppressWarnings("unchecked")
+				Enumeration<ISecurityContext> subContexts = context.getSubContexts( );			
+				remoteUserSecurityContextExists = setRemoteUser(context, remoteUser);
+			
+				if ( subContexts != null ) {	
+					while ( subContexts.hasMoreElements( ) ) {
+					    ISecurityContext ctx = subContexts.nextElement( );
+					    // Check to see if a RemoteUserSecurityContext already exists, and set the REMOTE_USER
+					    if (setRemoteUser(ctx, remoteUser)) {
+					    	remoteUserSecurityContextExists = true;
+					    }
+					}
+				}
 			}
 						
 			// If a RemoteUserSecurityContext doesn't alreay exist, create one.  
@@ -120,6 +119,15 @@ public class RemoteUserPersonManager extends AbstractPersonManager {
         }
 		// Return the new person object
 		return (person);
+	}
+
+	private boolean setRemoteUser(ISecurityContext ctx, String remoteUser) {
+	    if ( ctx instanceof RemoteUserSecurityContext ) {
+	        RemoteUserSecurityContext remoteuserctx = (RemoteUserSecurityContext)ctx;
+	        remoteuserctx.setRemoteUser( remoteUser );
+	        return true;
+	    }
+		return false;
 	}
 }
 
