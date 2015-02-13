@@ -19,17 +19,26 @@
 
 package org.jasig.portal.rest;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.lang.StringUtils;
 import org.jasig.portal.EntityIdentifier;
+import org.jasig.portal.groups.EntityGroupImpl;
+import org.jasig.portal.groups.ICompositeGroupService;
+import org.jasig.portal.groups.IEntityGroup;
+import org.jasig.portal.groups.IGroupMember;
 import org.jasig.portal.portlet.om.IPortletDefinition;
 import org.jasig.portal.portlet.om.PortletCategory;
 import org.jasig.portal.portlet.registry.IPortletCategoryRegistry;
@@ -40,6 +49,7 @@ import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.services.AuthorizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -57,8 +67,15 @@ public class PortletsRESTController {
     private IPortletDefinitionRegistry portletDefinitionRegistry;
     private IPortletCategoryRegistry portletCategoryRegistry;
     private IPersonManager personManager;
-
+    private ICompositeGroupService groupService;
+    
+    
     @Autowired
+    public void setGroupService(ICompositeGroupService groupService) {
+		this.groupService = groupService;
+	}
+
+	@Autowired
     public void setPortletDefinitionRegistry(IPortletDefinitionRegistry portletDefinitionRegistry) {
         this.portletDefinitionRegistry = portletDefinitionRegistry;
     }
@@ -73,6 +90,48 @@ public class PortletsRESTController {
         this.portletCategoryRegistry = portletCategoryRegistry;
     }
 
+    @RequestMapping(value="/retrieveLtiPortletLaunchParams/group/{groupid}/user/{username}", method = RequestMethod.GET)
+    public ModelAndView retrieveLtiPortletLaunchParams(
+    		@PathVariable("groupid") String groupId,
+    		@PathVariable("username") String userName,
+    		HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
+    	String groupKey = groupId.replace("_", ".");
+    	String role = null;
+    	//IEntity
+    	
+		IEntityGroup group = this.groupService.findGroup(groupKey);
+		
+		Iterator<IGroupMember> surfSubSubGroups = group.getAllMembers();
+		while (surfSubSubGroups.hasNext()) {
+			IGroupMember surfSubSubGroup = surfSubSubGroups.next();
+			if (surfSubSubGroup.isGroup()) {
+				EntityGroupImpl roleGroup = (EntityGroupImpl) surfSubSubGroup; 
+
+				Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
+        		while (surfSubSubGroupUsers.hasNext()) {
+        			IGroupMember user = surfSubSubGroupUsers.next();
+        			//when user exists in this managers/members group, then depending on the group, the LTI portlet role is set
+        			if (user.isEntity() && user.getKey().equals(userName)) {
+        				if (roleGroup.getName().split(":")[0].equals("managers_urn")) {	 
+        					role = "Instructor";
+        				} else if (roleGroup.getName().split(":")[0].equals("members_urn")) {
+        					role = "Student";
+        				}
+        			}
+        			
+        		}
+				
+			}
+		}
+		
+		String groupName = group.getName();
+    	
+    	Map<String,String> rslt = new HashMap();
+    	rslt.put("roles", role);
+    	rslt.put("resource_link_id", group.getName());
+        return new ModelAndView("json", "ltiLauncParameters", rslt);
+    }
+    
     @RequestMapping(value="/portlets.json", method = RequestMethod.GET)
     public ModelAndView getPortlets(HttpServletRequest request, HttpServletResponse response) throws Exception {
         // get a list of all channels

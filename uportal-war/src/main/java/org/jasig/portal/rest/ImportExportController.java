@@ -151,6 +151,7 @@ public class ImportExportController {
     	response.setStatus(HttpServletResponse.SC_OK);
     }
     
+    
     protected BufferedXMLEventReader createSourceXmlEventReader(MultipartFile multipartFile) throws IOException {
         final InputStream inputStream = multipartFile.getInputStream();
         final String name = multipartFile.getOriginalFilename();
@@ -322,82 +323,88 @@ public class ImportExportController {
     }
     
     protected void createFragmentLayout (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
-    	   	
-    	final IPerson person = personManager.getPerson(request);
-    	String[] splittedGroup = groupId.split(":");
-    	final String tabName = splittedGroup[splittedGroup.length-1]; 
-    	String layoutXml = 
-    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    			+"<layout xmlns:dlm=\"http://www.uportal.org/layout/dlm\" script=\"classpath://org/jasig/portal/io/import-layout_v3-2.crn\""
-    			+"    username=\"" + person.getUserName() + "\" >"
-    			+"    <folder ID=\"s1\" hidden=\"false\" immutable=\"false\" name=\"Root folder\" type=\"root\" unremovable=\"true\">"
-    			+"        <!--"
-    			+"         | Hidden folders do not propagate to regular users, and fragment owner"
-    			+"         | accounts don't receive (other) fragments at all;  Fragment owners must"
-    			+"         | have their own copies of the minimal portlets required to view and manage"
-    			+"         | their own layouts."
-    			+"         +-->"
-    			+"        <folder ID=\"s2\" hidden=\"true\" immutable=\"true\" name=\"Page Top folder\" type=\"page-top\" unremovable=\"true\">"
-    			+"            <channel fname=\"dynamic-respondr-skin\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n3\"/>"
-    			+"            <channel fname=\"fragment-admin-exit\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n4\"/>"
-    			+"        </folder>"
-    			+"        <folder ID=\"s5\" hidden=\"true\" immutable=\"true\" name=\"Customize folder\" type=\"customize\" unremovable=\"true\">"
-    			+"            <channel fname=\"personalization-gallery\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n6\"/>"
-    			+"        </folder>"
-    			+"        <folder ID=\"s7\" dlm:deleteAllowed=\"false\" dlm:editAllowed=\"false\" dlm:moveAllowed=\"false\" hidden=\"false\" immutable=\"false\" name=\"" +tabName+ " Tab\" type=\"regular\" unremovable=\"false\">"
-    			+"            <structure-attribute>"
-    			+"                <name>externalId</name>"
-    			+"                <value>welcome</value>"
-    			+"            </structure-attribute>"
-    			+"            <folder ID=\"s8\" hidden=\"false\" immutable=\"false\" name=\"Column\" type=\"regular\" unremovable=\"false\">"
-    			+"                <structure-attribute>"
-    			+"                    <name>width</name>"
-    			+"                    <value>60%</value>"
-    			+"                </structure-attribute>"
-//    			+"                <channel fname=\"email-preview-demo\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n9\" dlm:moveAllowed=\"false\" dlm:deleteAllowed=\"false\"/>"
-//    			+"                <channel fname=\"weather\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n10\"/>"
-//    			+"                <channel fname=\"pbookmarks\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n11\" dlm:moveAllowed=\"false\" dlm:deleteAllowed=\"false\"/>"
-    			+"            </folder>"
-    			+"            <folder ID=\"s12\" hidden=\"false\" immutable=\"false\" name=\"Column\" type=\"regular\" unremovable=\"false\">"
-    			+"                <structure-attribute>"
-    			+"                    <name>width</name>"
-    			+"                    <value>40%</value>"
-    			+"                </structure-attribute>"
-//    			+"                <channel fname=\"calendar\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n13\"/>"
-    			+"            </folder>"
-    			+"        </folder>"
-    			+"    </folder>"
-    			+"</layout>";
-    	final XMLInputFactory xmlInputFactory = this.xmlUtilities.getXmlInputFactory();
-    	InputStream inputStream = new ByteArrayInputStream(layoutXml.getBytes("UTF-8"));
-    	XMLEventReader xmlEventReader = null;   	
-        try {
-            xmlEventReader = xmlInputFactory.createXMLEventReader("Fr2.fragment-layout.xml", inputStream);
-        }
-        catch (XMLStreamException e) {
-            throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
-        }    	    	 
-    	BufferedXMLEventReader buffXmlEvnetReader = new BufferedXMLEventReader(xmlEventReader, -1);
-    	final BufferedXMLEventReader bufferedXmlEventReader = buffXmlEvnetReader; 
+    	EntityIdentifier[] groups = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+    	if (groups.length > 0)  {
 
-//    	final EntityIdentifier ei = person.getEntityIdentifier();
-//    	final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
-//    	final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);
+	    	final IPerson person = personManager.getPerson(request);
+	    	String[] splittedGroup = groupId.split(":");
+	    	final String tabName = splittedGroup[splittedGroup.length-1]; 
+	    	String groupKey = groups[0].getKey();
+	    	
+	    	String layoutXml = 
+	    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+	    			+"<layout xmlns:dlm=\"http://www.uportal.org/layout/dlm\" script=\"classpath://org/jasig/portal/io/import-layout_v3-2.crn\""
+	    			+"    username=\"" + person.getUserName() + "\" >"
+	    			+"    <folder ID=\"s1\" hidden=\"false\" immutable=\"false\" name=\"Root folder\" type=\"root\" unremovable=\"true\">"
+	    			+"        <!--"
+	    			+"         | Hidden folders do not propagate to regular users, and fragment owner"
+	    			+"         | accounts don't receive (other) fragments at all;  Fragment owners must"
+	    			+"         | have their own copies of the minimal portlets required to view and manage"
+	    			+"         | their own layouts."
+	    			+"         +-->"
+	    			+"        <folder ID=\"s2\" hidden=\"true\" immutable=\"true\" name=\"Page Top folder\" type=\"page-top\" unremovable=\"true\">"
+	    			+"            <channel fname=\"dynamic-respondr-skin\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n3\"/>"
+	    			+"            <channel fname=\"fragment-admin-exit\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n4\"/>"
+	    			+"        </folder>"
+	    			+"        <folder ID=\"s5\" hidden=\"true\" immutable=\"true\" name=\"Customize folder\" type=\"customize\" unremovable=\"true\">"
+	    			+"            <channel fname=\"personalization-gallery\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n6\"/>"
+	    			+"        </folder>"
+	    			+"        <folder ID=\"s7\" dlm:deleteAllowed=\"false\" dlm:editAllowed=\"false\" dlm:moveAllowed=\"false\" hidden=\"false\" immutable=\"false\" name=\"" +tabName+ " Tab\" type=\"regular\" unremovable=\"false\">"
+	    			+"            <structure-attribute>"
+	    			+"                <name>externalId</name>"
+	    			+"                <value>" + groupKey + "</value>"
+	    			+"            </structure-attribute>"
+	    			+"            <folder ID=\"s8\" hidden=\"false\" immutable=\"false\" name=\"Column\" type=\"regular\" unremovable=\"false\">"
+	    			+"                <structure-attribute>"
+	    			+"                    <name>width</name>"
+	    			+"                    <value>60%</value>"
+	    			+"                </structure-attribute>"
+	//    			+"                <channel fname=\"email-preview-demo\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n9\" dlm:moveAllowed=\"false\" dlm:deleteAllowed=\"false\"/>"
+	//    			+"                <channel fname=\"weather\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n10\"/>"
+	//    			+"                <channel fname=\"pbookmarks\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n11\" dlm:moveAllowed=\"false\" dlm:deleteAllowed=\"false\"/>"
+	    			+"            </folder>"
+	    			+"            <folder ID=\"s12\" hidden=\"false\" immutable=\"false\" name=\"Column\" type=\"regular\" unremovable=\"false\">"
+	    			+"                <structure-attribute>"
+	    			+"                    <name>width</name>"
+	    			+"                    <value>40%</value>"
+	    			+"                </structure-attribute>"
+	//    			+"                <channel fname=\"calendar\" unremovable=\"false\" hidden=\"false\" immutable=\"false\" ID=\"n13\"/>"
+	    			+"            </folder>"
+	    			+"        </folder>"
+	    			+"    </folder>"
+	    			+"</layout>";
+	    	final XMLInputFactory xmlInputFactory = this.xmlUtilities.getXmlInputFactory();
+	    	InputStream inputStream = new ByteArrayInputStream(layoutXml.getBytes("UTF-8"));
+	    	XMLEventReader xmlEventReader = null;   	
+	        try {
+	            xmlEventReader = xmlInputFactory.createXMLEventReader("Fr2.fragment-layout.xml", inputStream);
+	        }
+	        catch (XMLStreamException e) {
+	            throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
+	        }    	    	 
+	    	BufferedXMLEventReader buffXmlEvnetReader = new BufferedXMLEventReader(xmlEventReader, -1);
+	    	final BufferedXMLEventReader bufferedXmlEventReader = buffXmlEvnetReader; 
+	
+	//    	final EntityIdentifier ei = person.getEntityIdentifier();
+	//    	final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
+	//    	final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);
+	    	
+	    	//Step 4: for now remove this permission check, we can add one back in when we know the criteria
+	//    	if (!ap.hasPermission("UP_SYSTEM", "IMPORT_ENTITY", portalDataKey.getName().getLocalPart())) {
+	//    		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	//    		return;
+	//    	}
+	    	try {
+		    	StAXSource fragmentSource = new StAXSource(bufferedXmlEventReader);
+		    	portalDataHandlerService.importData(fragmentSource);
+	    	} catch (Exception e) {
+	    		e.printStackTrace();
+	    		throw new IOException(e.getMessage(), e);
+	    	}
     	
-    	//Step 4: for now remove this permission check, we can add one back in when we know the criteria
-//    	if (!ap.hasPermission("UP_SYSTEM", "IMPORT_ENTITY", portalDataKey.getName().getLocalPart())) {
-//    		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//    		return;
-//    	}
-    	try {
-	    	StAXSource fragmentSource = new StAXSource(bufferedXmlEventReader);
-	    	portalDataHandlerService.importData(fragmentSource);
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		throw new IOException(e.getMessage(), e);
+    	} else {
+    		throw new IOException("Group not found.");
     	}
-    	
-    	
     }
     
     /**
