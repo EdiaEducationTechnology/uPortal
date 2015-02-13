@@ -196,7 +196,7 @@ public class LoginController {
 			   .setClientId("https://uportal.edia.nl")
 			   .setResponseType("code")
 			   .setScope("read")
-			   .setRedirectURI("http://uportal.edia.nl/uPortal/Token")
+			   .setRedirectURI("https://uportal.edia.nl/uPortal/Token")
 			   .buildQueryMessage();
 	
 			String locationUri = authReq.getLocationUri();
@@ -218,7 +218,7 @@ public class LoginController {
                 .setGrantType(GrantType.AUTHORIZATION_CODE)
                 .setClientId(CONEXT_CLIENT_ID)
                 .setClientSecret(CONEXT_OAUTH_KEY)
-                .setRedirectURI("http://uportal.edia.nl/uPortal/Token")
+                .setRedirectURI("https://uportal.edia.nl/uPortal/Token")
                 .setCode(code)
                 .buildQueryMessage();
 		
