@@ -43,6 +43,6 @@
     <portlet-preference>
         <name>portalLogoutUrl</name>
         <readOnly>false</readOnly>
-        <value>/uPortal/Logout</value>
+        <value>/Shibboleth.sso/Logout</value>
     </portlet-preference>
 </portlet-definition>
