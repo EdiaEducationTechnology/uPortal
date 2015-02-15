@@ -20,7 +20,7 @@ public class LtiPortletControllerClient {
             HttpClient client = new DefaultHttpClient();
 
             if(StringUtils.equals("https", protocol)) {
-                addSSLAuthenticationToHttpClient(client);
+                disableCertificateValidationForDemo(client);
             }
 
             HttpGet request = new HttpGet(url);
@@ -48,31 +48,28 @@ public class LtiPortletControllerClient {
             HashMap ltiData     = (HashMap) letiResults.get("ltiLauncParameters");
             return ltiData;
         }
-        
-        public void addSSLAuthenticationToHttpClient(HttpClient client) {
-            try {
-                SSLContext sslContext = SSLContext.getInstance("SSL");
-                
-                sslContext.init(null,
-                        new TrustManager[]{new X509TrustManager() {
-                            public X509Certificate[] getAcceptedIssuers() {
-                                
-                                return null;
-                            }
-                            
-                            public void checkClientTrusted(
-                                    X509Certificate[] certs, String authType) {
-                                
-                            }
-                            
-                            public void checkServerTrusted(
-                                    X509Certificate[] certs, String authType) {
-                                
-                            }
-                        }}, new SecureRandom());
-                
-                SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext,SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-                
-                client = HttpClientBuilder.create().setSSLSocketFactory(socketFactory).build();
-            }
+        //TODO: Remove this and set key path, only for demo purpose
+        public static void disableCertificateValidationForDemo() {
+              // Create a trust manager that does not validate certificate chains
+              TrustManager[] trustAllCerts = new TrustManager[] { 
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() { 
+                      return new X509Certificate[0]; 
+                    }
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                }};
+
+                // Ignore differences between given hostname and certificate hostname
+                HostnameVerifier hv = new HostnameVerifier() {
+                  public boolean verify(String hostname, SSLSession session) { return true; }
+                };
+
+                // Install the all-trusting trust manager
+                try {
+                  SSLContext sc = SSLContext.getInstance("SSL");
+                  sc.init(null, trustAllCerts, new SecureRandom());
+                  HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+                  HttpsURLConnection.setDefaultHostnameVerifier(hv);
+              } catch (Exception e) {}
         }
