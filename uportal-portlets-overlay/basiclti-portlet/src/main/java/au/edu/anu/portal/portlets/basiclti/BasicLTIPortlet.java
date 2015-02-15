@@ -422,18 +422,8 @@ public class BasicLTIPortlet extends GenericPortlet{
             HashMap map = null;
             String roles = null;
             String resourceLinkId = null;
-            String protocol = "http";
-            try {
-                 map = client.getRoleAndResourcelink(groupId, userName, protocol, "");
-            } catch (Exception e) {
-                    e.printStackTrace();
-                    protocol = "https";
-                    try {
-                    map = client.getRoleAndResourcelink(groupId, userName, protocol, "");
-                } catch (Exception e2) {
-                    e.printStackTrace();
-                }
-            }
+            map = client.getRoleAndResourcelink(groupId, portalRequest);
+            
             if (map != null) {
                 roles           = (String) map.get("roles");
                 resourceLinkId  = (String) map.get("resource_link_id");

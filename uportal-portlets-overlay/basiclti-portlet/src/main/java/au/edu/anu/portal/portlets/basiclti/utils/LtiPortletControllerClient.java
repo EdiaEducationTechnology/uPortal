@@ -6,6 +6,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -13,6 +14,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
@@ -24,67 +27,31 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class LtiPortletControllerClient {
-    // HTTP GET request
-    public HashMap getRoleAndResourcelink(String groupId, String userName, String protocol, final String USER_AGENT) throws Exception {
+    
+    public Map<String, String> getRoleAndResourcelink(String groupId, HttpServletRequest request) throws Exception {
+        HttpSession session = request.getSession();
+        Map<String, String> result = new HashMap<String, String>();
 
-        String url = protocol + "://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
-
-        HttpClient client = new DefaultHttpClient();
-        wrapClient(client);
-
-        HttpGet request = new HttpGet(url);
-
-        // add request header
-        request.addHeader("User-Agent", USER_AGENT);
-
-        HttpResponse response = client.execute(request);
-
-        System.out.println("\nSending 'GET' request to URL : " + url);
-        System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+        Object groupIdToRoleMapFromSession = session.getAttribute("groupIdToRoleMap");
+        Object groupIdToToolPlacementIdFromSession = session.getAttribute("groupIdToToolPlacementId");
+        
+        if(groupIdToRoleMapFromSession != null && groupIdToToolPlacementIdFromSession != null) {
+            @SuppressWarnings("unchecked")
+            HashMap<String, String> groupIdToRoleMap = (HashMap<String, String>) groupIdToRoleMapFromSession;
+            @SuppressWarnings("unchecked")
+            HashMap<String, String> groupIdToToolPlacementId = (HashMap<String, String>) groupIdToToolPlacementIdFromSession;
+            
+            String role = groupIdToRoleMap.get(groupId);
+            String toolPlacement = groupIdToToolPlacementId.get(groupId);
+            
+            result.put("roles", role);
+            result.put("resource_link_id", toolPlacement);
+        } else {
+            System.err.println("Cannot find session data for LTI launch params. Not in a SURF team?");
         }
-
-        System.out.println(result.toString());
-        HashMap<String, Object> letiResults = new ObjectMapper().readValue(result.toString(), HashMap.class);
-        HashMap ltiData = (HashMap) letiResults.get("ltiLauncParameters");
-        return ltiData;
+        
+        return result;
     }
 
-    // TODO: Remove this and set key path, only for demo purpose
-    public HttpClient wrapClient(HttpClient base) {
-        try {
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            X509TrustManager tm = new X509TrustManager() {
-
-                public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-                }
-
-                public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-                }
-
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-            };
-            ctx.init(null, new TrustManager[] { tm }, null);
-            SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            ClientConnectionManager ccm = base.getConnectionManager();
-            SchemeRegistry sr = ccm.getSchemeRegistry();
-            sr.register(new Scheme("https", ssf, 443));
-            return new DefaultHttpClient(ccm, base.getParams());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
 }
