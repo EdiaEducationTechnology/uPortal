@@ -71,18 +71,12 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     @Autowired
     private ImportExportController importExportController;
     
-    @Autowired
-    private ICompositeGroupService groupService;
 
     @Autowired
     public void setPersonManager(IPersonManager personManager) {
         this.personManager = personManager;
     }
 
-    @Autowired
-    public void setGroupService(ICompositeGroupService groupService) {
-        this.groupService = groupService;
-    }
 
     /*
      * (non-Javadoc)
@@ -162,7 +156,7 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                     importExportController.updateGroupMembership("Everyone", Arrays.asList("surfteams"), new ArrayList(), person);
                     importExportController.updateGroupMembership("Subscribable Fragments", Arrays.asList(managerGroupId), new ArrayList(), person);
                     
-                    EntityIdentifier[] rootGroup = groupService.searchForEntities(groupId, GroupService.IS, EntityEnum.GROUP.getClazz());
+                    EntityIdentifier[] rootGroup = importExportController.getGroupIdentifiers(groupId);
                     if(rootGroup.length != 1) {
                         logger.error("Expected one group but found multiple while querying for: " + groupId);
                     } else {
