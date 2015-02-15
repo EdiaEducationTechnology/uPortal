@@ -38,8 +38,8 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 import javax.portlet.ValidatorException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
-import main.java.au.edu.anu.portal.portlets.basiclti.utils.LtiPortletControllerClient;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -418,11 +418,10 @@ public class BasicLTIPortlet extends GenericPortlet{
             System.out.println("retrieving username...");
             String userName = userInfo.get(attributeMappingForUsername).toString();
             System.out.println("User: " + userName + " Group key: "+ groupId);
-            LtiPortletControllerClient client = new LtiPortletControllerClient();
-            Map map = null;
+            HashMap map = null;
             String roles = null;
             String resourceLinkId = null;
-            map = client.getRoleAndResourcelink(groupId, portalRequest);
+            map = getRoleAndResourcelink(groupId, portalRequest);
             
             if (map != null) {
                 roles           = (String) map.get("roles");
@@ -477,6 +476,30 @@ public class BasicLTIPortlet extends GenericPortlet{
         return params;
     }
     
+    public HashMap<String, String> getRoleAndResourcelink(String groupId, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        HashMap<String, String> result = new HashMap<String, String>();
+
+        Object groupIdToRoleMapFromSession = session.getAttribute("groupIdToRoleMap");
+        Object groupIdToToolPlacementIdFromSession = session.getAttribute("groupIdToToolPlacementId");
+        
+        if(groupIdToRoleMapFromSession != null && groupIdToToolPlacementIdFromSession != null) {
+            @SuppressWarnings("unchecked")
+            HashMap<String, String> groupIdToRoleMap = (HashMap<String, String>) groupIdToRoleMapFromSession;
+            @SuppressWarnings("unchecked")
+            HashMap<String, String> groupIdToToolPlacementId = (HashMap<String, String>) groupIdToToolPlacementIdFromSession;
+            
+            String role = groupIdToRoleMap.get(groupId);
+            String toolPlacement = groupIdToToolPlacementId.get(groupId);
+            
+            result.put("roles", role);
+            result.put("resource_link_id", toolPlacement);
+        } else {
+            System.err.println("Cannot find session data for LTI launch params. Not in a SURF team?");
+        }
+        
+        return result;
+    }
     
     /**
      * Get the provider type from the preferences/configuration, or default from Constants

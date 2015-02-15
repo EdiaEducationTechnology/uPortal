@@ -29,9 +29,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 public class LtiPortletControllerClient {
     
-    public Map<String, String> getRoleAndResourcelink(String groupId, HttpServletRequest request) throws Exception {
+    public HashMap<String, String> getRoleAndResourcelink(String groupId, HttpServletRequest request) throws Exception {
         HttpSession session = request.getSession();
-        Map<String, String> result = new HashMap<String, String>();
+        HashMap<String, String> result = new HashMap<String, String>();
 
         Object groupIdToRoleMapFromSession = session.getAttribute("groupIdToRoleMap");
         Object groupIdToToolPlacementIdFromSession = session.getAttribute("groupIdToToolPlacementId");
