@@ -2,8 +2,18 @@ package main.java.au.edu.anu.portal.portlets.basiclti.utils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -17,12 +27,12 @@ public class LtiPortletControllerClient {
 
             String url = protocol+ "://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
 
-            HttpClient client = new DefaultHttpClient();
 
             if(StringUtils.equals("https", protocol)) {
-                disableCertificateValidationForDemo(client);
+                disableCertificateValidationForDemo();
             }
 
+            HttpClient client = new DefaultHttpClient();
             HttpGet request = new HttpGet(url);
             
             // add request header
@@ -62,7 +72,11 @@ public class LtiPortletControllerClient {
 
                 // Ignore differences between given hostname and certificate hostname
                 HostnameVerifier hv = new HostnameVerifier() {
-                  public boolean verify(String hostname, SSLSession session) { return true; }
+
+                @Override
+                public boolean verify(String arg0, SSLSession arg1) {
+                    return true;
+                }
                 };
 
                 // Install the all-trusting trust manager
