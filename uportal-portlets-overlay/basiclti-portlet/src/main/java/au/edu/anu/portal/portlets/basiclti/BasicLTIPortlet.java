@@ -419,7 +419,7 @@ public class BasicLTIPortlet extends GenericPortlet{
             String userName = userInfo.get(attributeMappingForUsername).toString();
             System.out.println("User: " + userName + " Group key: "+ groupId);
             LtiPortletControllerClient client = new LtiPortletControllerClient();
-            HashMap map = null;
+            Map map = null;
             String roles = null;
             String resourceLinkId = null;
             map = client.getRoleAndResourcelink(groupId, portalRequest);
