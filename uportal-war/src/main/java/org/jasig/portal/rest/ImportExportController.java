@@ -104,6 +104,10 @@ public class ImportExportController {
         this.groupService = groupService;
     }
     
+    public void setGroupService(ICompositeGroupService groupService) {
+        this.groupService = groupService;
+    }
+
     @RequestMapping(value="/import", method = RequestMethod.POST)
     public void importEntity(@RequestParam("file") MultipartFile entityFile, 
     		HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
@@ -174,7 +178,7 @@ public class ImportExportController {
         return portalDataKey;
     }
     public void updateGroupMembership (String groupId, List<String> subgroupNames, List<String> userNames, IPerson person) {    	
-    	EntityIdentifier[] results = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+    	EntityIdentifier[] results = getGroupIdentifiers(groupId);
     	List<IGroupMember> existingSubgroups = new ArrayList();
     	IEntityGroup parentGroup = null;
     	if (results.length > 0)  {
@@ -183,7 +187,7 @@ public class ImportExportController {
     			parentGroup = (IEntityGroup) parentGroupMemb;
     			
             	for (String subgroupName : subgroupNames) {           		
-            		EntityIdentifier[] subGroups = this.groupService.searchForGroups(subgroupName,GroupService.IS,EntityEnum.GROUP.getClazz());
+            		EntityIdentifier[] subGroups = getGroupIdentifiers(subgroupName);
             		IGroupMember member = GroupService.getGroupMember(subGroups[0]);
             		if (member.isGroup()) {
             			//existingSubgroups.add(member);
@@ -213,7 +217,7 @@ public class ImportExportController {
     	if (shouldJoinGroup) {
     		usernames.add(person.getUserName());
     	}
-    	EntityIdentifier[] groups = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+    	EntityIdentifier[] groups = getGroupIdentifiers(groupId);
     	if (groups.length > 0)  {
     		this.updateGroupMembership(groupId, subgroupNames, usernames, person);    		
     		System.out.println("Warning. Group already is in database ");
@@ -263,6 +267,11 @@ public class ImportExportController {
     		e.printStackTrace();
     		throw new IOException(e.getMessage(), e);
     	}
+    }
+
+    public EntityIdentifier[] getGroupIdentifiers(String groupId) {
+        EntityIdentifier[] groups = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+        return groups;
     }
     
     protected void createFragmentDefinition (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
@@ -323,7 +332,7 @@ public class ImportExportController {
     }
     
     protected void createFragmentLayout (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
-    	EntityIdentifier[] groups = this.groupService.searchForGroups(groupId,GroupService.IS,EntityEnum.GROUP.getClazz());
+    	EntityIdentifier[] groups = getGroupIdentifiers(groupId);
     	if (groups.length > 0)  {
 
 	    	final IPerson person = personManager.getPerson(request);
