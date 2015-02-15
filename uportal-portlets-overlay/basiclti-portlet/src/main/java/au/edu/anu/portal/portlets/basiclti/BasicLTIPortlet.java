@@ -489,8 +489,9 @@ public class BasicLTIPortlet extends GenericPortlet{
             @SuppressWarnings("unchecked")
             HashMap<String, String> groupIdToToolPlacementId = (HashMap<String, String>) groupIdToToolPlacementIdFromSession;
             
-            String role = groupIdToRoleMap.get(groupId);
-            String toolPlacement = groupIdToToolPlacementId.get(groupId);
+            String groupIdWithDot = groupId.replace("_", ".");
+            String role = groupIdToRoleMap.get(groupIdWithDot);
+            String toolPlacement = groupIdToToolPlacementId.get(groupIdWithDot);
             
             result.put("roles", role);
             result.put("resource_link_id", toolPlacement);
