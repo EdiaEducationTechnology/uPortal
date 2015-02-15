@@ -73,3 +73,4 @@ public class LtiPortletControllerClient {
                   HttpsURLConnection.setDefaultHostnameVerifier(hv);
               } catch (Exception e) {}
         }
+}
