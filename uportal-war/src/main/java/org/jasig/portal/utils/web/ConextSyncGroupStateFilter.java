@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -40,11 +42,14 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.jasig.portal.portlet.container.services.IPortletCookieService;
+import org.jasig.portal.EntityIdentifier;
+import org.jasig.portal.groups.ICompositeGroupService;
 import org.jasig.portal.portlet.om.IPortalCookie;
+import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.rest.ImportExportController;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
+import org.jasig.portal.services.GroupService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -65,10 +70,18 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
 
     @Autowired
     private ImportExportController importExportController;
+    
+    @Autowired
+    private ICompositeGroupService groupService;
 
     @Autowired
     public void setPersonManager(IPersonManager personManager) {
         this.personManager = personManager;
+    }
+
+    @Autowired
+    public void setGroupService(ICompositeGroupService groupService) {
+        this.groupService = groupService;
     }
 
     /*
@@ -106,11 +119,15 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+
     private void handleSurfTeamStateSync(HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
         String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
 
         if (StringUtils.isNotEmpty(conextAccessToken)) {
-            IPerson person = this.personManager.getPerson(request);            
+            IPerson person = this.personManager.getPerson(request);
+            Map<String, String> groupIdToRoleMap = new HashMap<String, String>();
+            Map<String, String> groupIdToToolPlacementId = new HashMap<String, String>();
+            
             CloseableHttpClient httpclient = HttpClients.createDefault();
 
             HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
@@ -127,7 +144,6 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                 for (int i = 0; i < groups.length(); i++) {
                     JSONObject group = (JSONObject) groups.get(i);
                     String groupId = group.getString("id");
-                    String description = group.getString("description");
                     String vootRole = group.getString("voot_membership_role");
                     
                     // if group not found, then
@@ -145,9 +161,23 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                     
                     importExportController.updateGroupMembership("Everyone", Arrays.asList("surfteams"), new ArrayList(), person);
                     importExportController.updateGroupMembership("Subscribable Fragments", Arrays.asList(managerGroupId), new ArrayList(), person);
+                    
+                    EntityIdentifier[] rootGroup = groupService.searchForEntities(groupId, GroupService.IS, EntityEnum.GROUP.getClazz());
+                    if(rootGroup.length != 1) {
+                        logger.error("Expected one group but found multiple while querying for: " + groupId);
+                    } else {
+                        EntityIdentifier actualId = rootGroup[0];
+                        String actualIdKey = actualId.getKey();
+                        groupIdToRoleMap.put(actualIdKey, vootRole);
+                        groupIdToToolPlacementId.put(actualIdKey, groupId);
+                    }
                 }
 
             }
+            
+            HttpSession session = request.getSession();
+            session.setAttribute("groupIdToRoleMap", groupIdToRoleMap);
+            session.setAttribute("groupIdToToolPlacementId", groupIdToToolPlacementId);
         }
     }
 
