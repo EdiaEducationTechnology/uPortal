@@ -18,8 +18,13 @@ public class LtiPortletControllerClient {
             String url = protocol+ "://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
 
             HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet(url);
 
+            if(StringUtils.equals("https", protocol)) {
+                addSSLAuthenticationToHttpClient(client);
+            }
+
+            HttpGet request = new HttpGet(url);
+            
             // add request header
             request.addHeader("User-Agent", USER_AGENT);
 
@@ -44,4 +49,30 @@ public class LtiPortletControllerClient {
             return ltiData;
         }
         
-}
+        public void addSSLAuthenticationToHttpClient(HttpClient client) {
+            try {
+                SSLContext sslContext = SSLContext.getInstance("SSL");
+                
+                sslContext.init(null,
+                        new TrustManager[]{new X509TrustManager() {
+                            public X509Certificate[] getAcceptedIssuers() {
+                                
+                                return null;
+                            }
+                            
+                            public void checkClientTrusted(
+                                    X509Certificate[] certs, String authType) {
+                                
+                            }
+                            
+                            public void checkServerTrusted(
+                                    X509Certificate[] certs, String authType) {
+                                
+                            }
+                        }}, new SecureRandom());
+                
+                SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext,SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                
+                client = HttpClientBuilder.create().setSSLSocketFactory(socketFactory).build();
+            }
+        }
