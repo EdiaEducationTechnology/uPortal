@@ -13,9 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LtiPortletControllerClient {
 	// HTTP GET request
-		public HashMap getRoleAndResourcelink(String groupId, String userName, final String USER_AGENT) throws Exception {
+		public HashMap getRoleAndResourcelink(String groupId, String userName, String protocol, final String USER_AGENT) throws Exception {
 
-			String url = "http://uportal.edia.nl/uPortal/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
+			String url = "/api/retrieveLtiPortletLaunchParams/group/" + groupId + "/user/" + userName;
 
 			HttpClient client = new DefaultHttpClient();
 			HttpGet request = new HttpGet(url);
