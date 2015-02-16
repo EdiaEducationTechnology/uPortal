@@ -86,6 +86,7 @@
               statusCode: {
                 200: function() {
                   handleSuccesfulTeamTabCreation();
+                  windows.location = "//" + windows.location.host;
                 }
               }              
            });
