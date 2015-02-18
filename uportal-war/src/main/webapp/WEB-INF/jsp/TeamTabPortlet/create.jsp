@@ -64,6 +64,7 @@
               $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created</b></font>");
               setTimeout(function(){
                 $("#messagebox").html("");
+                window.location = "//" + window.location.host;
               },5000); 
             },
             $ = up.jQuery;
@@ -85,8 +86,7 @@
               type: "GET",
               statusCode: {
                 200: function() {
-                  handleSuccesfulTeamTabCreation();
-                  windows.location = "//" + windows.location.host;
+                  handleSuccesfulTeamTabCreation();                  
                 }
               }              
            });
