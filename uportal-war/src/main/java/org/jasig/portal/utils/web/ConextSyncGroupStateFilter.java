@@ -43,13 +43,18 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.jasig.portal.EntityIdentifier;
+import org.jasig.portal.UserPreferencesManager;
 import org.jasig.portal.groups.ICompositeGroupService;
+import org.jasig.portal.layout.IUserLayoutManager;
+import org.jasig.portal.layout.UserLayoutManagerFactory;
 import org.jasig.portal.portlet.om.IPortalCookie;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.rest.ImportExportController;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.services.GroupService;
+import org.jasig.portal.user.IUserInstance;
+import org.jasig.portal.user.IUserInstanceManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -70,6 +75,12 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
 
     @Autowired
     private ImportExportController importExportController;
+    
+    @Autowired
+    private  UserLayoutManagerFactory userLayoutManagerFactory;
+    
+    @Autowired
+    private IUserInstanceManager userInstanceManager;
     
 
     @Autowired
@@ -101,10 +112,18 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                 String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
 
                 if (StringUtils.isNotEmpty(conextAccessToken)) {
-                    try {
-                        handleSurfTeamStateSync(request, response);
+                	IPerson person = this.personManager.getPerson(request);
+
+                	try {
+                        handleSurfTeamStateSync(person, request, response);
                     } catch (JSONException | XMLStreamException e) {
                         e.printStackTrace();
+                    } finally {
+                    	IUserInstance ui = userInstanceManager.getUserInstance(request);
+                    	UserPreferencesManager upm = (UserPreferencesManager) ui.getPreferencesManager();
+
+                    	IUserLayoutManager userLayoutManager = userLayoutManagerFactory.getUserLayoutManager(person, upm.getUserProfile());
+                    	userLayoutManager.loadUserLayout(true);
                     }
                 }
             }
@@ -114,11 +133,10 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     }
 
 
-    private void handleSurfTeamStateSync(HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
+    private void handleSurfTeamStateSync(IPerson person, HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
         String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
 
         if (StringUtils.isNotEmpty(conextAccessToken)) {
-            IPerson person = this.personManager.getPerson(request);
             Map<String, String> groupIdToRoleMap = new HashMap<String, String>();
             Map<String, String> groupIdToToolPlacementId = new HashMap<String, String>();
             
@@ -145,9 +163,14 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                     String memberGroupId = "members_" + groupId;
                     
                     boolean isMember = StringUtils.equals("member", vootRole);
-                    boolean isManager = StringUtils.equals("manager", vootRole) || StringUtils.equals("admin", vootRole);
+                    boolean isManager = StringUtils.equals("manager", vootRole) || StringUtils.equals("admin", vootRole);                              
                     
-                    importExportController.createGroup(managerGroupId, new ArrayList(), new ArrayList(), person, isManager);
+                    importExportController.createOwnerIfNotFound(managerGroupId);
+//                    String ownerName = importExportController.generateFragmentOwnerName(managerGroupId);
+                    ArrayList userList = new ArrayList();
+//                    userList.add(ownerName);
+                    
+                    importExportController.createGroup(managerGroupId, new ArrayList(), userList, person, isManager);
                     importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person, isMember);
                                         
                     importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), new ArrayList(), person, false);

@@ -371,9 +371,7 @@ public class RDBMDistributedLayoutStore extends RDBMUserLayoutStore {
     public DistributedUserLayout getUserLayout(IPerson person, IUserProfile profile)
 
     {
-
         final DistributedUserLayout layout = this._getUserLayout(person, profile);
-
         return layout;
     }
 
