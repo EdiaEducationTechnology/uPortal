@@ -25,13 +25,12 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -42,18 +41,27 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jasig.portal.EntityIdentifier;
+import org.jasig.portal.UserPreferencesManager;
 import org.jasig.portal.groups.ICompositeGroupService;
 import org.jasig.portal.groups.IEntityGroup;
 import org.jasig.portal.groups.IGroupMember;
-import org.jasig.portal.groups.IGroupService;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
 import org.jasig.portal.io.xml.PortalDataKey;
+import org.jasig.portal.layout.IUserLayoutManager;
+import org.jasig.portal.layout.UserLayoutManagerFactory;
+import org.jasig.portal.layout.dlm.ConfigurationLoader;
+import org.jasig.portal.layout.dlm.FragmentDefinition;
+import org.jasig.portal.persondir.ILocalAccountPerson;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.security.IAuthorizationPrincipal;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
+import org.jasig.portal.security.IdentitySwapperManager;
+import org.jasig.portal.security.IdentitySwapperManagerImpl;
 import org.jasig.portal.services.AuthorizationService;
 import org.jasig.portal.services.GroupService;
+import org.jasig.portal.user.IUserInstance;
+import org.jasig.portal.user.IUserInstanceManager;
 import org.jasig.portal.xml.StaxUtils;
 import org.jasig.portal.xml.XmlUtilities;
 import org.jasig.portal.xml.stream.BufferedXMLEventReader;
@@ -64,6 +72,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
 
 /**
  * ImportExportController provides AJAX/REST targets for import/export operations.
@@ -83,12 +92,33 @@ public class ImportExportController {
     private IPortalDataHandlerService portalDataHandlerService;
     private ICompositeGroupService groupService;
     private XmlUtilities xmlUtilities;
+	private IdentitySwapperManager identitySwapperManager;
+	private ConfigurationLoader configurationLoader;
+    private UserLayoutManagerFactory userLayoutManagerFactory;
+    private IUserInstanceManager userInstanceManager;
 
-    @Autowired
+	@Autowired
+	public void setUserLayoutManagerFactory(
+			UserLayoutManagerFactory userLayoutManagerFactory) {
+		this.userLayoutManagerFactory = userLayoutManagerFactory;
+	}
+	@Autowired
+	public void setUserInstanceManager(IUserInstanceManager userInstanceManager) {
+		this.userInstanceManager = userInstanceManager;
+	}
+	@Autowired
     public void setXmlUtilities(XmlUtilities xmlUtilities) {
         this.xmlUtilities = xmlUtilities;
     }
-
+	@Autowired
+	public void setConfigurationLoader(ConfigurationLoader configurationLoader) {
+		this.configurationLoader = configurationLoader;
+	}
+	@Autowired
+    public void setIdentitySwapperManager(IdentitySwapperManager identitySwapperManager) {
+        this.identitySwapperManager = identitySwapperManager;
+    }
+    
     @Autowired
     public void setPersonManager(IPersonManager personManager) {
     	this.personManager = personManager;
@@ -144,14 +174,60 @@ public class ImportExportController {
     
     @RequestMapping(value="/create/fragment/group/{groupid}", method = RequestMethod.GET)
     public void createFragmentWithLayout(@PathVariable("groupid") String groupId, 
-    		HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
+    	final HttpServletRequest request, HttpServletResponse response) throws IOException, XMLStreamException {
+    	final HttpSession session = request.getSession();
+    	final IPerson person = personManager.getPerson(request);
     	
-    	//creates the fragment definition by generating xml and importing it
-    	this.createFragmentDefinition(groupId, request);
-     	
-    	//Step 5: import default layout for fragment
-    	this.createFragmentLayout(groupId, request);
-    	
+    	String userName = person.getUserName();    	 	
+    	String[] splittedGroup = groupId.split(":");
+    	final String fragmentName = "team_tab_"+splittedGroup[splittedGroup.length-1];
+
+    	FragmentDefinition fragment = this.configurationLoader.getFragmentByName(fragmentName);
+    	if (fragment != null) { 		
+	    	//becomes fragment owner    		
+			if(this.identitySwapperManager.canImpersonateUser(userName, fragment.getOwnerId())) {
+				try {
+//					ServletExternalContext extContext = new ServletExternalContext(request.getServletContext(), request, response);
+				    final String SWAP_TARGET_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_UID";
+				    final String SWAP_TARGET_PROFILE = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_PROFILE";
+				    final String SWAP_ORIGINAL_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_ORIGINAL_UID";
+				    
+					//extContext.getNativeContext();
+//					RequestContextHolder.setRequestContext(extContext);
+//			        final RequestContext requestContext = RequestContextHolder.getRequestContext();
+//			        final ExternalContext externalContext = requestContext.getExternalContext();
+					//portletService.
+//					PortletRequest portletRequest = (PortletRequest) extContext.getNativeRequest();
+//					this.identitySwapperManager.impersonateUser(portletRequest, person.getUserName(), fragment.getOwnerId());
+				    
+					session.setAttribute(SWAP_TARGET_UID, fragment.getOwnerId()); //, PortletSession.APPLICATION_SCOPE
+					session.setAttribute(SWAP_TARGET_PROFILE, "default"); //PortletSession.APPLICATION_SCOPE
+					
+	
+					
+                	IUserInstance ui = userInstanceManager.getUserInstance(request);
+                	UserPreferencesManager upm = (UserPreferencesManager) ui.getPreferencesManager();
+                	//final IUserInstance userInstance = this.userInstanceManager.
+                	//final ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(fragment.getOwnerId());
+                	
+                	//IUserLayoutManager userLayoutManager = userLayoutManagerFactory.getUserLayoutManager(targetPerson, upm.getUserProfile());
+                	//userLayoutManager.loadUserLayout(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+    	} else {   	
+	    	
+	    	//or if owner not there, creates fragment owner
+	    	
+	    	//adds owner to the surfgroup as manager
+    		
+	    	//creates the fragment definition by generating xml and importing it. adding owner to xml as well
+	    	this.createFragmentDefinition(groupId, request);
+	     	
+	    	//Step 5: import default layout for fragment
+	    	this.createFragmentLayout(groupId, request);
+    	}
     	response.setStatus(HttpServletResponse.SC_OK);
     }
     
@@ -220,7 +296,6 @@ public class ImportExportController {
     	EntityIdentifier[] groups = getGroupIdentifiers(groupId);
     	if (groups.length > 0)  {
     		this.updateGroupMembership(groupId, subgroupNames, usernames, person);    		
-    		System.out.println("Warning. Group already is in database ");
     		return;
     	}
     	
@@ -274,21 +349,91 @@ public class ImportExportController {
         return groups;
     }
     
-    protected void createFragmentDefinition (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
-       	
+    protected String generateFragmentNameForTeam (String teamName) {
+    	String[] splittedGroup = teamName.split(":");
+    	final String fragmentName = "team_tab_"+splittedGroup[splittedGroup.length-1];
+    	return fragmentName;
+    }
+    public String generateFragmentOwnerName (String teamName) {
+    	String ownerName = "owner_" + generateFragmentNameForTeam(teamName);
+    	return ownerName;
+    }
+    public void createOwnerIfNotFound (String groupId) throws IOException, XMLStreamException {
+
 //    	//Step 0: check if the group doesn't have a team tab for 
-    	final IPerson person = personManager.getPerson(request);
-    	String userName = person.getUserName();
+//    	final IPerson person = personManager.getPerson(request);
+//    	String userName = person.getUserName();
     	
 //    	//Step 1: get group, validate access to group
 //    	
 //    	//Step 2: generate XML that would normally be uploaded by a file with an XML library
-    	String[] splittedGroup = groupId.split(":");
-    	final String fragmentName = "team_tab_"+splittedGroup[splittedGroup.length-1]; 
+    	String ownerName = generateFragmentOwnerName(groupId);
+    	
+		EntityIdentifier[] persons = this.groupService.searchForEntities(ownerName,GroupService.IS,EntityEnum.PERSON.getClazz());
+		if (persons.length > 0) {	
+			IGroupMember member = GroupService.getGroupMember(persons[0]);
+			if (member != null) {
+				return;
+			}
+		}
+
+    	System.out.println(ownerName);
+    	String fragmentDef = 
+    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+    			+ "<user username=\"" + ownerName + "\" version=\"4.0\" xsi:schemaLocation=\"https://source.jasig.org/schemas/uportal/io/user https://source.jasig.org/schemas/uportal/io/user/user-4.0.xsd\" xmlns:ns2=\"https://source.jasig.org/schemas/uportal/io/stylesheet-descriptor\" xmlns=\"https://source.jasig.org/schemas/uportal/io/user\" xmlns:ns4=\"https://source.jasig.org/schemas/uportal/io/subscribed-fragment\" xmlns:ns3=\"https://source.jasig.org/schemas/uportal/io/permission-owner\" xmlns:ns5=\"https://source.jasig.org/schemas/uportal/io/portlet-type\" xmlns:ns6=\"https://source.jasig.org/schemas/uportal/io/portlet-definition\" xmlns:ns7=\"https://source.jasig.org/schemas/uportal\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:ns8=\"https://source.jasig.org/schemas/uportal/io/event-aggregation\">"
+    			+ "<default-user>defaultTemplateUser</default-user>"
+        		+ "<password>(SHA256)5jbUOw4MP87oufWvFx9qBjLomzj/THPY3HXyEnN/u6jVxcIVVeqXcA==</password>"
+        		+ "<lastPasswordChange>2015-02-20T11:37:34+01:00</lastPasswordChange>"
+        		+ "</user>";
+    	
+//    	//Step 3: feed this to the BufferedXMLEventReader and continue like normal
+//    	//Get a StAX reader for the source to determine info about the data to import
+    	
+    	final XMLInputFactory xmlInputFactory = this.xmlUtilities.getXmlInputFactory();
+    	InputStream inputStream = new ByteArrayInputStream(fragmentDef.getBytes("UTF-8"));
+    	XMLEventReader xmlEventReader = null;   	
+        try {
+            xmlEventReader = xmlInputFactory.createXMLEventReader("user1.user.xml", inputStream);
+        }
+        catch (XMLStreamException e) {
+            throw new RuntimeException("Failed to create XML Event Reader for data Source", e);
+        }    	    	 
+    	BufferedXMLEventReader buffXmlEvnetReader = new BufferedXMLEventReader(xmlEventReader, -1);
+    	final BufferedXMLEventReader bufferedXmlEventReader = buffXmlEvnetReader; 
+    	final PortalDataKey portalDataKey = getPortalDataKey(bufferedXmlEventReader);   	
+
+
+    	//final EntityIdentifier ei = person.getEntityIdentifier();
+    	//final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
+    	
+    	//Step 4: for now remove this permission check, we can add one back in when we know the criteria
+//    	if (!ap.hasPermission("UP_SYSTEM", "IMPORT_ENTITY", portalDataKey.getName().getLocalPart())) {
+//    		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//    		return;
+//    	}
+    	try {
+	    	StAXSource source = new StAXSource(bufferedXmlEventReader);
+	    	portalDataHandlerService.importData(source);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		throw new IOException(e.getMessage(), e);
+    	}
+    }
+    
+    protected void createFragmentDefinition (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
+       	
+//    	//Step 0: check if the group doesn't have a team tab for 
+    	final IPerson person = personManager.getPerson(request);
+    	final String ownerName = generateFragmentOwnerName(groupId);
+    	
+//    	//Step 1: get group, validate access to group
+//    	
+//    	//Step 2: generate XML that would normally be uploaded by a file with an XML library
+    	final String fragmentName = generateFragmentNameForTeam(groupId); 
     	String fragmentDef = 
     			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
     	    	+"<fragment-definition xmlns:dlm=\"http://org.jasig.portal.layout.dlm.config\" script=\"classpath://org/jasig/portal/io/import-fragment-definition_v3-1.crn\">"
-    	    	+    "<dlm:fragment name=\"" + fragmentName + "\" ownerID=\"" + userName + "\" precedence=\"10\">"
+    	    	+    "<dlm:fragment name=\"" + fragmentName + "\" ownerID=\"" + ownerName + "\" precedence=\"10\">"
     	    	+        "<dlm:audience evaluatorFactory=\"org.jasig.portal.layout.dlm.providers.GroupMembershipEvaluatorFactory\">"
     	    	+            "<paren mode=\"OR\">"
     	    	+                "<attribute mode=\"deepMemberOf\" name=\"" + groupId+ "\"/>"
@@ -334,7 +479,7 @@ public class ImportExportController {
     protected void createFragmentLayout (String groupId, HttpServletRequest request) throws IOException, XMLStreamException {
     	EntityIdentifier[] groups = getGroupIdentifiers(groupId);
     	if (groups.length > 0)  {
-
+    		final String ownerName = generateFragmentOwnerName(groupId);
 	    	final IPerson person = personManager.getPerson(request);
 	    	String[] splittedGroup = groupId.split(":");
 	    	final String tabName = splittedGroup[splittedGroup.length-1]; 
@@ -343,7 +488,7 @@ public class ImportExportController {
 	    	String layoutXml = 
 	    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 	    			+"<layout xmlns:dlm=\"http://www.uportal.org/layout/dlm\" script=\"classpath://org/jasig/portal/io/import-layout_v3-2.crn\""
-	    			+"    username=\"" + person.getUserName() + "\" >"
+	    			+"    username=\"" + ownerName + "\" >"
 	    			+"    <folder ID=\"s1\" hidden=\"false\" immutable=\"false\" name=\"Root folder\" type=\"root\" unremovable=\"true\">"
 	    			+"        <!--"
 	    			+"         | Hidden folders do not propagate to regular users, and fragment owner"

@@ -163,9 +163,14 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
                     String memberGroupId = "members_" + groupId;
                     
                     boolean isMember = StringUtils.equals("member", vootRole);
-                    boolean isManager = StringUtils.equals("manager", vootRole) || StringUtils.equals("admin", vootRole);
+                    boolean isManager = StringUtils.equals("manager", vootRole) || StringUtils.equals("admin", vootRole);                              
                     
-                    importExportController.createGroup(managerGroupId, new ArrayList(), new ArrayList(), person, isManager);
+                    importExportController.createOwnerIfNotFound(managerGroupId);
+//                    String ownerName = importExportController.generateFragmentOwnerName(managerGroupId);
+                    ArrayList userList = new ArrayList();
+//                    userList.add(ownerName);
+                    
+                    importExportController.createGroup(managerGroupId, new ArrayList(), userList, person, isManager);
                     importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person, isMember);
                                         
                     importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId), new ArrayList(), person, false);

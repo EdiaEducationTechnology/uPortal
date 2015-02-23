@@ -37,6 +37,8 @@ import org.jasig.portal.groups.IEntityGroup;
 import org.jasig.portal.groups.IGroupMember;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
 import org.jasig.portal.io.xml.IPortalDataType;
+import org.jasig.portal.layout.dlm.ConfigurationLoader;
+import org.jasig.portal.layout.dlm.FragmentDefinition;
 import org.jasig.portal.portlet.registry.IPortletDefinitionRegistry;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.security.IAuthorizationPrincipal;
@@ -71,8 +73,12 @@ public class TeamTabPortletController {
     private IPortalDataHandlerService portalDataHandlerService;
     private ICompositeGroupService groupService;
     private IPortletDefinitionRegistry portletDefinitionRegistry;
- 
+    private ConfigurationLoader configurationLoader;
     
+	@Autowired
+	public void setConfigurationLoader(ConfigurationLoader configurationLoader) {
+		this.configurationLoader = configurationLoader;
+	}
     
     public IPortletDefinitionRegistry getPortletDefinitionRegistry() {
 		return portletDefinitionRegistry;
@@ -117,8 +123,10 @@ public class TeamTabPortletController {
     public ModelAndView getImportView(PortletRequest request) {
     	
     	Map<String,Object> model = new HashMap<String,Object>();
-    	List<String> groupNames = findAllManagerGroupsForUser(request);
+    	List<String> groupNames = findAllManagerGroupsForUser(request, false, true);
+    	Map<String, String> teamTabs = findAllManagerGroupTeamTabsForUser(request);
     	model.put("groupNames", groupNames);
+    	model.put("teams", teamTabs);
     	return new ModelAndView("/jsp/TeamTabPortlet/create", model);
     	//return "/jsp/TeamTabPortlet/create";
     }
@@ -133,48 +141,66 @@ public class TeamTabPortletController {
     public ModelAndView getCreateView(PortletRequest request) {
     	Map<String,Object> model = new HashMap<String,Object>();
     	
-        // add a list of all permitted export types
+  
     	final Iterable<IPortalDataType> exportPortalDataTypes = this.portalDataHandlerService.getExportPortalDataTypes();
-    	final List<IPortalDataType> types = getAllowedTypes(request, EXPORT_PERMISSION, exportPortalDataTypes);
-    	List<String> groupNames = findAllManagerGroupsForUser(request);
+
+    	List<String> groupNames = findAllManagerGroupsForUser(request, false, true);
+    	Map<String, String> teamTabs = findAllManagerGroupTeamTabsForUser(request);
     	model.put("groupNames", groupNames);
-    	
-        return new ModelAndView("/jsp/TeamTabPortlet/create", model);
+    	model.put("teams", teamTabs);
+    	return new ModelAndView("/jsp/TeamTabPortlet/create", model);
     }    
     
     
-    /**
-     * Return a list of all permitted import/export types for the given permission
-     * and the current user.
-     * 
-     * @param request
-     * @param activityName
-     * @return
-     */
-    protected List<IPortalDataType> getAllowedTypes(PortletRequest request, String activityName, Iterable<IPortalDataType> dataTypes) {
+//    /**
+//     * Return a list of all permitted import/export types for the given permission
+//     * and the current user.
+//     * 
+//     * @param request
+//     * @param activityName
+//     * @return
+//     */
+//    protected List<IPortalDataType> getAllowedTypes(PortletRequest request, String activityName, Iterable<IPortalDataType> dataTypes) {
+//
+//    	// get the authorization principal representing the current user
+//        final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
+//		final IPerson person = personManager.getPerson(httpServletRequest);
+//		final EntityIdentifier ei = person.getEntityIdentifier();
+//	    final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
+//
+//	    // filter the list of configured import/export types by user permission
+//    	final List<IPortalDataType> results = new ArrayList<IPortalDataType>();
+//    	for (IPortalDataType type : dataTypes) {
+//    		final String typeId = type.getTypeId();
+//    	    if (ap.hasPermission(OWNER, activityName, typeId)) {
+//    	    	results.add(type);
+//    	    }    		
+//    	}
+//
+//    	return results;
+//    }
+    protected Map<String, String> findAllManagerGroupTeamTabsForUser (PortletRequest request) {
+    	final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
+    	Map<String, String> fragments = new HashMap<String, String>();
+    	List<String> groupNames = this.findAllManagerGroupsForUser(request, true, false);
+    	
+    	for (String groupName : groupNames) {
 
-    	// get the authorization principal representing the current user
-        final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
-		final IPerson person = personManager.getPerson(httpServletRequest);
-		final EntityIdentifier ei = person.getEntityIdentifier();
-	    final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
-
-	    // filter the list of configured import/export types by user permission
-    	final List<IPortalDataType> results = new ArrayList<IPortalDataType>();
-    	for (IPortalDataType type : dataTypes) {
-    		final String typeId = type.getTypeId();
-    	    if (ap.hasPermission(OWNER, activityName, typeId)) {
-    	    	results.add(type);
-    	    }    		
+	    	FragmentDefinition fragment = this.configurationLoader.getFragmentByName(generateFragmentNameForTeam(groupName));
+	    	fragments.put(fragment.getOwnerId() ,fragment.getName());
     	}
-
-    	return results;
+    	
+    	return fragments;
     }
-
-    protected List<String> findAllManagerGroupsForUser (PortletRequest request) {
+    protected String generateFragmentNameForTeam (String teamName) {
+    	String[] splittedGroup = teamName.split(":");
+    	final String fragmentName = "team_tab_"+splittedGroup[splittedGroup.length-1];
+    	return fragmentName;
+    }
+    protected List<String> findAllManagerGroupsForUser (PortletRequest request, boolean includeWithTeamTab, boolean includeWithNoTeamTab) {
         final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
 		final IPerson person = personManager.getPerson(httpServletRequest);
-
+		
 		ArrayList<String> groupNames = new ArrayList<String>();
 		
     	EntityIdentifier[] surfteams 	= this.groupService.searchForGroups("surfteams", GroupService.IS, EntityEnum.GROUP.getClazz());    	
@@ -195,14 +221,41 @@ public class TeamTabPortletController {
 	        				if (possiblyManagerGroup.getName().split(":")[0].equals("managers_urn")) {	 
 	        					if (person.getUserName().equals("admin")) {
 	        						EntityGroupImpl surfSubGroupImpl = (EntityGroupImpl) surfSubGroup; 
-        	        				groupNames.add(surfSubGroupImpl.getName());
+	        						String fragmentName = generateFragmentNameForTeam(surfSubGroupImpl.getName());
+        	        				FragmentDefinition fragmentForTeam = this.configurationLoader.getFragmentByName(fragmentName);
+        	        				if (includeWithTeamTab && includeWithNoTeamTab) {
+        	        					//include group without checking team tab
+        	        					groupNames.add(surfSubGroupImpl.getName());
+        	        				} else {  
+        	        					if ((fragmentForTeam != null) && includeWithTeamTab) {
+        	        						//if team tab exists for group
+        	        						groupNames.add(surfSubGroupImpl.getName());
+        	        					} else if ((fragmentForTeam == null) && includeWithNoTeamTab){
+        	        						//if team tab does not exist for group 
+        	        						groupNames.add(surfSubGroupImpl.getName());
+        	        					}
+        	        				}	
 	        					} else {
 		        	        		Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
 		        	        		while (surfSubSubGroupUsers.hasNext()) {
 		        	        			IGroupMember user = surfSubSubGroupUsers.next();
 		        	        			if (user.isEntity() && user.getKey().equals(person.getUserName())) {
 		        	        				EntityGroupImpl surfSubGroupImpl = (EntityGroupImpl) surfSubGroup; 
-		        	        				groupNames.add(surfSubGroupImpl.getName());
+			        						String fragmentName = generateFragmentNameForTeam(surfSubGroupImpl.getName());
+		        	        				FragmentDefinition fragmentForTeam = this.configurationLoader.getFragmentByName(fragmentName);		        	 
+		        	        				if (includeWithTeamTab && includeWithNoTeamTab) {
+		        	        					//include group without checking team tab
+		        	        					groupNames.add(surfSubGroupImpl.getName());
+		        	        				} else {  
+		        	        					if ((fragmentForTeam != null) && includeWithTeamTab) {
+		        	        						//if team tab exists for group
+		        	        						groupNames.add(surfSubGroupImpl.getName());
+		        	        					} else if ((fragmentForTeam == null) && includeWithNoTeamTab){
+		        	        						//if team tab does not exist for group 
+		        	        						groupNames.add(surfSubGroupImpl.getName());
+		        	        					}
+		        	        					
+		        	        				}
 		        	        			}
 		        	        			
 		        	        		}	
@@ -217,8 +270,5 @@ public class TeamTabPortletController {
     	return groupNames;
     }
     
-    protected List<String> getPortletUserGroups(String portletName) {
-    	
-    	return null;
-    }
+
 }

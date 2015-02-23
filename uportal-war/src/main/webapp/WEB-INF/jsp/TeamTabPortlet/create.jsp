@@ -29,7 +29,7 @@
         
         <!-- Note -->
         <div class="portlet-note" role="note">
-            <p style="font-size: 16px;">Select a team</p>
+            <p style="font-size: 16px;">Select a team for creating Team Tab</p>
         </div>
         
         <div class="portlet-form">
@@ -54,12 +54,48 @@
             </form>
             <div id="messagebox"></div>
         </div>
+        <br/><br/>
+        <!-- Note -->
+        <div class="portlet-note" role="note">
+            <p style="font-size: 16px;">Select a Team Tab for editing</p>
+        </div>
         
+        <div class="portlet-form">
+            <form id="${n}form2" method="POST" action="javascript:;">
+                
+                <table class="purpose-layout">
+                    <tr>
+                        <td>
+                         <select id="${n}ownerid" name="ownerid" max-width="90%">
+                            <option></option>
+                            <c:forEach items="${teams}" var="teams">
+                                <option value="${teams.key}"><spring:message code="${teams.value}"/></option>
+                            </c:forEach>
+                        </select>  
+                        </td>
+                    </tr>
+                </table>
+                <br/>
+                <div class="buttons">
+                    <input class="button btn primary update-team-tab" type="submit" value="Update Team tab" disabled="disabled"/>
+                </div>
+            </form>
+            <div id="messagebox"></div>
+        </div>
+<!--
+        <form method="post" name="fragmentAdminForm" action="/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1">
+                <select id="fragmentOwner" name="impersonateUser" title="Choose">
+                    <option value="NONE"> -- <spring:message code="fragments"/> -- </option>
+                    <option value="edia1">edia1</option>
+                </select>
+                <input class="button btn" type="submit" value="<spring:message code="go"/>" />
+        </form> -->
     </div> <!-- end: portlet-content -->
 </div> <!-- end: portlet -->
 
 <script type="text/javascript">
-    up.jQuery(document).ready(function () {
+     up.jQuery(document).ready(function () {
+        
         var handleSuccesfulTeamTabCreation = function () {
               $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created</b></font>");
               setTimeout(function(){
@@ -67,6 +103,7 @@
                 window.location = "//" + window.location.host;
               },5000); 
             },
+
             $ = up.jQuery;
 
         $("[name='groupid']").on('change', function () {
@@ -76,7 +113,13 @@
                 $('.create-team-tab').attr('disabled', 'disabled');
             }
         });
-
+        $("[name='ownerid']").on('change', function () {
+            if ($(this).val()) {
+                $('.update-team-tab').removeAttr('disabled');
+            } else {
+                $('.update-team-tab').attr('disabled', 'disabled');
+            }
+        });
         $("#${n}form").on('submit', function () {
           var groupId = $("[name='groupid']", this).val()
 
@@ -90,6 +133,22 @@
                 }
               }              
            });
+           return false;
+        });
+
+        $("#${n}form2").on('submit', function () {
+            //must be entire url for some reason to make it work
+            var url = '<c:url value="http://uportal.edia.nl/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
+            var term = $("[name='ownerid']", this).val();
+            var posting = $.post( url, { impersonateUser: term } );
+
+            posting.done(function( data ) {
+                $('<form action="/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
+                '<input type="hidden" name="impersonateUser" value="' + term + '">' +
+                '</form>').submit();
+            });
+
+
            return false;
         });
     });
