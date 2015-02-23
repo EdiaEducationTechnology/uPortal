@@ -97,11 +97,16 @@
      up.jQuery(document).ready(function () {
         
         var handleSuccesfulTeamTabCreation = function () {
-              $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created</b></font>");
-              setTimeout(function(){
-                $("#messagebox").html("");
-                window.location = "//" + window.location.host;
-              },5000); 
+              var secondCountDown = 5;
+              setInterval(function(){          
+                if (secondCountDown===0) {
+                    $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");
+                    window.location = "/uPortal";
+                } else {
+                    $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created. Refreshing after " + secondCountDown + " seconds</b></font>");
+                    secondCountDown--;                  
+                }
+              },1000); 
             },
 
             $ = up.jQuery;
@@ -138,7 +143,7 @@
 
         $("#${n}form2").on('submit', function () {
             //must be entire url for some reason to make it work
-            var url = '<c:url value="http://uportal.edia.nl/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
+            var url = '<c:url value="/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
             var term = $("[name='ownerid']", this).val();
             var posting = $.post( url, { impersonateUser: term } );
 
