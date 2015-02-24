@@ -1,24 +1,3 @@
-<%--
-
-    Licensed to Jasig under one or more contributor license
-    agreements. See the NOTICE file distributed with this work
-    for additional information regarding copyright ownership.
-    Jasig licenses this file to you under the Apache License,
-    Version 2.0 (the "License"); you may not use this file
-    except in compliance with the License. You may obtain a
-    copy of the License at:
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on
-    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, either express or implied. See the License for the
-    specific language governing permissions and limitations
-    under the License.
-
---%>
-
 <%@ include file="/WEB-INF/jsp/include.jsp" %>
 
 <!-- Portlet -->
@@ -33,7 +12,7 @@
         </div>
         
         <div class="portlet-form">
-            <form id="${n}form" method="POST" action="javascript:;">
+            <form id="${n}form_create_teamtab" method="POST" action="javascript:;">
                 
                 <table class="purpose-layout">
                     <tr>
@@ -61,7 +40,7 @@
         </div>
         
         <div class="portlet-form">
-            <form id="${n}form2" method="POST" action="javascript:;">
+            <form id="${n}form_update_teamtab" method="POST" action="javascript:;">
                 
                 <table class="purpose-layout">
                     <tr>
@@ -125,7 +104,7 @@
                 $('.update-team-tab').attr('disabled', 'disabled');
             }
         });
-        $("#${n}form").on('submit', function () {
+        $("#${n}form_create_teamtab").on('submit', function () {
           var groupId = $("[name='groupid']", this).val()
 
           // TODO: make this a POST, change controller, we are creating, not getting
@@ -141,14 +120,18 @@
            return false;
         });
 
-        $("#${n}form2").on('submit', function () {
+        $("#${n}form_update_teamtab").on('submit', function () {
             //must be entire url for some reason to make it work
-            var url = '<c:url value="/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
+            var host = 'uportal.edia.nl';
+            var host2 = window.location.hostname;
+            var host3 = '/uPortal';
+            var url = '<c:url value="' + host3 + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
+            //var url2 = host2 + '/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1';
             var term = $("[name='ownerid']", this).val();
             var posting = $.post( url, { impersonateUser: term } );
 
             posting.done(function( data ) {
-                $('<form action="/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
+                $('<form action="' + host3 + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
                 '<input type="hidden" name="impersonateUser" value="' + term + '">' +
                 '</form>').submit();
             });
