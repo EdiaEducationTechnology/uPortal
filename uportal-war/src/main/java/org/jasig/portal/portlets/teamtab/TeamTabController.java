@@ -1,22 +1,3 @@
-/**
- * Licensed to Jasig under one or more contributor license
- * agreements. See the NOTICE file distributed with this work
- * for additional information regarding copyright ownership.
- * Jasig licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a
- * copy of the License at:
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package org.jasig.portal.portlets.teamtab;
 
 import java.util.ArrayList;
@@ -36,45 +17,26 @@ import org.jasig.portal.groups.ICompositeGroupService;
 import org.jasig.portal.groups.IEntityGroup;
 import org.jasig.portal.groups.IGroupMember;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
-import org.jasig.portal.io.xml.IPortalDataType;
 import org.jasig.portal.layout.dlm.ConfigurationLoader;
 import org.jasig.portal.layout.dlm.FragmentDefinition;
 import org.jasig.portal.portlet.registry.IPortletDefinitionRegistry;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
-import org.jasig.portal.security.IAuthorizationPrincipal;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
-import org.jasig.portal.services.AuthorizationService;
 import org.jasig.portal.services.GroupService;
 import org.jasig.portal.url.IPortalRequestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.portlet.ModelAndView;
 
-/**
- * TeamTabPortletController controls the display of Team Tab creation functionality
- * 
- * @author Gatis Druva
- * @version $Revision$
- */
-@Controller
-@RequestMapping("VIEW")
-public class TeamTabPortletController {
-	
-	private static final String OWNER = "UP_SYSTEM";
-	private static final String EXPORT_PERMISSION = "EXPORT_ENTITY";
-	private static final String DELETE_PERMISSION = "DELETE_ENTITY";
-
+public abstract class TeamTabController {
     protected final Log log = LogFactory.getLog(getClass());
-
-    private IPersonManager personManager;
-    private IPortalRequestUtils portalRequestUtils;
-    private IPortalDataHandlerService portalDataHandlerService;
-    private ICompositeGroupService groupService;
-    private IPortletDefinitionRegistry portletDefinitionRegistry;
-    private ConfigurationLoader configurationLoader;
+    protected IPersonManager personManager;
+    protected IPortalRequestUtils portalRequestUtils;
+    protected IPortalDataHandlerService portalDataHandlerService;
+    protected ICompositeGroupService groupService;
+    protected IPortletDefinitionRegistry portletDefinitionRegistry;
+    protected ConfigurationLoader configurationLoader;
     
+
 	@Autowired
 	public void setConfigurationLoader(ConfigurationLoader configurationLoader) {
 		this.configurationLoader = configurationLoader;
@@ -112,73 +74,7 @@ public class TeamTabPortletController {
 	public void setPortalDataHandlerService(IPortalDataHandlerService portalDataHandlerService) {
         this.portalDataHandlerService = portalDataHandlerService;
     }
-
-    /**
-     * Display the entity import form view.
-     * 
-     * @param request
-     * @return
-     */
-    @RequestMapping
-    public ModelAndView getImportView(PortletRequest request) {
-    	
-    	Map<String,Object> model = new HashMap<String,Object>();
-    	List<String> groupNames = findAllManagerGroupsForUser(request, false, true);
-    	Map<String, String> teamTabs = findAllManagerGroupTeamTabsForUser(request);
-    	model.put("groupNames", groupNames);
-    	model.put("teams", teamTabs);
-    	return new ModelAndView("/jsp/TeamTabPortlet/create", model);
-    	//return "/jsp/TeamTabPortlet/create";
-    }
-
-    /**
-     * Display the entity creation form view.
-     * 
-     * @param request
-     * @return
-     */
-    @RequestMapping(params="action=create")
-    public ModelAndView getCreateView(PortletRequest request) {
-    	Map<String,Object> model = new HashMap<String,Object>();
-    	
-  
-    	final Iterable<IPortalDataType> exportPortalDataTypes = this.portalDataHandlerService.getExportPortalDataTypes();
-
-    	List<String> groupNames = findAllManagerGroupsForUser(request, false, true);
-    	Map<String, String> teamTabs = findAllManagerGroupTeamTabsForUser(request);
-    	model.put("groupNames", groupNames);
-    	model.put("teams", teamTabs);
-    	return new ModelAndView("/jsp/TeamTabPortlet/create", model);
-    }    
     
-    
-//    /**
-//     * Return a list of all permitted import/export types for the given permission
-//     * and the current user.
-//     * 
-//     * @param request
-//     * @param activityName
-//     * @return
-//     */
-//    protected List<IPortalDataType> getAllowedTypes(PortletRequest request, String activityName, Iterable<IPortalDataType> dataTypes) {
-//
-//    	// get the authorization principal representing the current user
-//        final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
-//		final IPerson person = personManager.getPerson(httpServletRequest);
-//		final EntityIdentifier ei = person.getEntityIdentifier();
-//	    final IAuthorizationPrincipal ap = AuthorizationService.instance().newPrincipal(ei.getKey(), ei.getType());
-//
-//	    // filter the list of configured import/export types by user permission
-//    	final List<IPortalDataType> results = new ArrayList<IPortalDataType>();
-//    	for (IPortalDataType type : dataTypes) {
-//    		final String typeId = type.getTypeId();
-//    	    if (ap.hasPermission(OWNER, activityName, typeId)) {
-//    	    	results.add(type);
-//    	    }    		
-//    	}
-//
-//    	return results;
-//    }
     protected Map<String, String> findAllManagerGroupTeamTabsForUser (PortletRequest request) {
     	final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
     	Map<String, String> fragments = new HashMap<String, String>();
@@ -197,11 +93,47 @@ public class TeamTabPortletController {
     	final String fragmentName = "team_tab_"+splittedGroup[splittedGroup.length-1];
     	return fragmentName;
     }
+    
+    protected Map<String, String> findUsersInTeamTab(String groupKey, boolean includeManagers, boolean includeMembers) {
+    	Map<String, String> users = new HashMap<String, String>();
+    	
+		IEntityGroup group = this.groupService.findGroup(groupKey);
+		
+		Iterator<IGroupMember> surfSubSubGroups = group.getAllMembers();
+		while (surfSubSubGroups.hasNext()) {
+			IGroupMember surfSubSubGroup = surfSubSubGroups.next();
+			if (surfSubSubGroup.isGroup()) {
+				EntityGroupImpl roleGroup = (EntityGroupImpl) surfSubSubGroup; 
+
+				Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
+        		while (surfSubSubGroupUsers.hasNext()) {
+        			IGroupMember user = surfSubSubGroupUsers.next();
+					if (roleGroup.getName().split(":")[0].equals("managers_urn")) {
+						//if this is manager role group and managers must be included
+						if (includeManagers) {
+							//user key == user name
+							users.put(user.getKey(), "false");
+						}
+					} else if (roleGroup.getName().split(":")[0].equals("members_urn")) {
+						//if this is member role group and members must be included
+						if (includeMembers) {
+							//user key == user name
+							users.put(user.getKey(), "false");
+						}
+					}      			
+        		}
+				
+			}
+		}
+    	
+    	return users;
+    }
+
     protected List<String> findAllManagerGroupsForUser (PortletRequest request, boolean includeWithTeamTab, boolean includeWithNoTeamTab) {
         final HttpServletRequest httpServletRequest = this.portalRequestUtils.getPortletHttpRequest(request);
 		final IPerson person = personManager.getPerson(httpServletRequest);
 		
-		ArrayList<String> groupNames = new ArrayList<String>();
+		List<String> groupNames = new ArrayList<String>();
 		
     	EntityIdentifier[] surfteams 	= this.groupService.searchForGroups("surfteams", GroupService.IS, EntityEnum.GROUP.getClazz());    	
     	
@@ -269,6 +201,4 @@ public class TeamTabPortletController {
     	}
     	return groupNames;
     }
-    
-
 }
