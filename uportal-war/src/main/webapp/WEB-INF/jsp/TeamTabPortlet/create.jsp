@@ -79,6 +79,7 @@
               var secondCountDown = 5;
               setInterval(function(){          
                 if (secondCountDown===0) {
+                	clearInterval(interval);
                     $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");        
                     window.location = "//" + window.location.hostname
                 } else {
