@@ -188,9 +188,7 @@ public class ImportExportController {
 			if(this.identitySwapperManager.canImpersonateUser(userName, fragment.getOwnerId())) {
 				try {
 //					ServletExternalContext extContext = new ServletExternalContext(request.getServletContext(), request, response);
-				    final String SWAP_TARGET_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_UID";
-				    final String SWAP_TARGET_PROFILE = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_PROFILE";
-				    final String SWAP_ORIGINAL_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_ORIGINAL_UID";
+
 				    
 					//extContext.getNativeContext();
 //					RequestContextHolder.setRequestContext(extContext);
@@ -199,9 +197,12 @@ public class ImportExportController {
 					//portletService.
 //					PortletRequest portletRequest = (PortletRequest) extContext.getNativeRequest();
 //					this.identitySwapperManager.impersonateUser(portletRequest, person.getUserName(), fragment.getOwnerId());
-				    
-					session.setAttribute(SWAP_TARGET_UID, fragment.getOwnerId()); //, PortletSession.APPLICATION_SCOPE
-					session.setAttribute(SWAP_TARGET_PROFILE, "default"); //PortletSession.APPLICATION_SCOPE
+
+//				    final String SWAP_TARGET_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_UID";
+//				    final String SWAP_TARGET_PROFILE = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_PROFILE";
+//				    final String SWAP_ORIGINAL_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_ORIGINAL_UID";					
+//					session.setAttribute(SWAP_TARGET_UID, fragment.getOwnerId()); //, PortletSession.APPLICATION_SCOPE
+//					session.setAttribute(SWAP_TARGET_PROFILE, "default"); //PortletSession.APPLICATION_SCOPE
 					
 	
 					
