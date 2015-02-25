@@ -79,9 +79,8 @@
               var secondCountDown = 5;
               setInterval(function(){          
                 if (secondCountDown===0) {
-                    $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");
-                    var hostname = window.location.hostname;
-                    window.location = hostname;
+                    $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");        
+                    window.location = "//" + window.location.hostname
                 } else {
                     $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created. Refreshing after " + secondCountDown + " seconds</b></font>");
                     secondCountDown--;                  
@@ -123,16 +122,15 @@
 
         $("#${n}form_update_teamtab").on('submit', function () {
             //must be entire url for some reason to make it work
-            var host = 'uportal.edia.nl';
-            var host2 = window.location.hostname;
-            var host3 = '';
-            var url = '<c:url value="' + host3 + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
+
+            host = "//" + window.location.hostname + "/uPortal"
+            var url = '<c:url value="' + host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
             //var url2 = host2 + '/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1';
             var term = $("[name='ownerid']", this).val();
             var posting = $.post( url, { impersonateUser: term } );
 
             posting.done(function( data ) {
-                $('<form action="' + host3 + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
+                $('<form action="' + host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
                 '<input type="hidden" name="impersonateUser" value="' + term + '">' +
                 '</form>').submit();
             });
