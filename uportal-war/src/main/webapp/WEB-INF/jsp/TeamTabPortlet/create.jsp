@@ -76,8 +76,8 @@
      up.jQuery(document).ready(function () {
         
         var handleSuccesfulTeamTabCreation = function () {
-              var secondCountDown = 5;
-              setInterval(function(){          
+              var secondCountDown = 5;              
+              var interval = setInterval(function(){          
                 if (secondCountDown===0) {
                 	clearInterval(interval);
                     $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");        
