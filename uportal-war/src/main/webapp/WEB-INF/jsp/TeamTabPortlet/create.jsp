@@ -80,7 +80,8 @@
               setInterval(function(){          
                 if (secondCountDown===0) {
                     $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");
-                    window.location = "/uPortal";
+                    var hostname = window.location.hostname;
+                    window.location = hostname;
                 } else {
                     $("#messagebox").html("<br/><font color=green size=+2><b>Team tab created. Refreshing after " + secondCountDown + " seconds</b></font>");
                     secondCountDown--;                  
@@ -124,7 +125,7 @@
             //must be entire url for some reason to make it work
             var host = 'uportal.edia.nl';
             var host2 = window.location.hostname;
-            var host3 = '/uPortal';
+            var host3 = '';
             var url = '<c:url value="' + host3 + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
             //var url2 = host2 + '/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1';
             var term = $("[name='ownerid']", this).val();

@@ -71,24 +71,4 @@ public class TeamTabPortletController extends TeamTabController {
     	return new ModelAndView("/jsp/TeamTabPortlet/create", model);
     	//return "/jsp/TeamTabPortlet/create";
     }
-
-//    /**
-//     * Display the entity creation form view.
-//     * 
-//     * @param request
-//     * @return
-//     */
-//    @RequestMapping(params="action=create")
-//    public ModelAndView getTeamTabAdminCreateView(PortletRequest request) {
-//    	Map<String,Object> model = new HashMap<String,Object>();
-//    	
-//  
-//    	final Iterable<IPortalDataType> exportPortalDataTypes = this.portalDataHandlerService.getExportPortalDataTypes();
-//
-//    	List<String> groupNames = findAllManagerGroupsForUser(request, false, true);
-//    	Map<String, String> teamTabs = findAllManagerGroupTeamTabsForUser(request);
-//    	model.put("groupNames", groupNames);
-//    	model.put("teams", teamTabs);
-//    	return new ModelAndView("/jsp/TeamTabPortlet/create", model);
-//    }    
 }
