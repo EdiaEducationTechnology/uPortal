@@ -60,6 +60,11 @@
                 </div>
             </form>
             <div id="messagebox"></div>
+
+            <form name="sendowner" action="//uportal.edia.nl/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST"> 
+                <input type="hidden" name="impersonateUser" value="owner_team_tab_edia_uportal_group_1">
+                <button style="display:none" type="submit">Submit</button>
+            </form>
         </div>
 <!--
         <form method="post" name="fragmentAdminForm" action="/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1">
@@ -79,7 +84,7 @@
               var secondCountDown = 5;              
               var interval = setInterval(function(){          
                 if (secondCountDown===0) {
-                	clearInterval(interval);
+                    clearInterval(interval);
                     $("#messagebox").html("<br/><font color=green size=+2><b>Refreshing page...</b></font>");        
                     window.location = "//" + window.location.hostname
                 } else {
@@ -126,14 +131,22 @@
 
             host = "//" + window.location.hostname + "/uPortal"
             var url = '<c:url value="' + host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1"/>';
+            var action = host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1';
             //var url2 = host2 + '/uPortal/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1';
             var term = $("[name='ownerid']", this).val();
             var posting = $.post( url, { impersonateUser: term } );
 
             posting.done(function( data ) {
-                $('<form action="' + host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
-                '<input type="hidden" name="impersonateUser" value="' + term + '">' +
-                '</form>').submit();
+                $('input[name=impersonateUser]').val(term);
+                $('form[name=sendowner]').attr('action', action);
+                $('form[name=sendowner]').submit();
+
+                //$.post(host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1', {impersonateUser: term}, function () {
+                //    window.location.reload();
+                //});
+                //$('<form action="' + host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1" method="POST">' + 
+                //'<input type="hidden" name="impersonateUser" value="' + term + '">' +
+                //'<button type="submit">Click me</button></form>').submit(); 
             });
 
 
