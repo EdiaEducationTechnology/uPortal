@@ -137,9 +137,12 @@
             var posting = $.post( url, { impersonateUser: term } );
 
             posting.done(function( data ) {
-                $('input[name=impersonateUser]').val(term);
-                $('form[name=sendowner]').attr('action', action);
-                $('form[name=sendowner]').submit();
+            	setTimeout(function(){
+                    $('input[name=impersonateUser]').val(term);
+                    $('form[name=sendowner]').attr('action', action);
+                    $('form[name=sendowner]').submit();            		
+            	}, 1000);
+ 
 
                 //$.post(host + '/p/fragment-admin.ctf3/max/action.uP?pP__eventId=selectFragment&pP_execution=e1s1', {impersonateUser: term}, function () {
                 //    window.location.reload();
