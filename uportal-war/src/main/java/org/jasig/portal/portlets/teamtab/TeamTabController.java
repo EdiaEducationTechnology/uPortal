@@ -19,12 +19,16 @@ import org.jasig.portal.groups.IGroupMember;
 import org.jasig.portal.io.xml.IPortalDataHandlerService;
 import org.jasig.portal.layout.dlm.ConfigurationLoader;
 import org.jasig.portal.layout.dlm.FragmentDefinition;
+import org.jasig.portal.persondir.ILocalAccountDao;
+import org.jasig.portal.persondir.ILocalAccountPerson;
 import org.jasig.portal.portlet.registry.IPortletDefinitionRegistry;
 import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.services.GroupService;
 import org.jasig.portal.url.IPortalRequestUtils;
+import org.jasig.services.persondir.IPersonAttributeDao;
+import org.jasig.services.persondir.IPersonAttributes;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class TeamTabController {
@@ -35,7 +39,19 @@ public abstract class TeamTabController {
     protected ICompositeGroupService groupService;
     protected IPortletDefinitionRegistry portletDefinitionRegistry;
     protected ConfigurationLoader configurationLoader;
+    protected ILocalAccountDao localAccountDao;
+    protected IPersonAttributeDao personAttributeDao;
     
+    
+    @Autowired
+    public void setPersonAttributeDao(IPersonAttributeDao personAttributeDao) {
+		this.personAttributeDao = personAttributeDao;
+	}
+
+	@Autowired
+	public void setLocalAccountDao(ILocalAccountDao localAccountDao) {
+		this.localAccountDao = localAccountDao;
+	}
 
 	@Autowired
 	public void setConfigurationLoader(ConfigurationLoader configurationLoader) {
@@ -108,17 +124,21 @@ public abstract class TeamTabController {
 				Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
         		while (surfSubSubGroupUsers.hasNext()) {
         			IGroupMember user = surfSubSubGroupUsers.next();
+        			//IPerson person = (IPerson) user;
+        			ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(user.getKey());
+        			final IPersonAttributes personAttributes = this.personAttributeDao.getPerson(user.getKey());
+        			
 					if (roleGroup.getName().split(":")[0].equals("managers_urn")) {
 						//if this is manager role group and managers must be included
 						if (includeManagers) {
 							//user key == user name
-							users.put(user.getKey(), "false");
+							users.put(personAttributes.getName(), "false");
 						}
 					} else if (roleGroup.getName().split(":")[0].equals("members_urn")) {
 						//if this is member role group and members must be included
 						if (includeMembers) {
 							//user key == user name
-							users.put(user.getKey(), "false");
+							users.put(personAttributes.getName(), "false");
 						}
 					}      			
         		}
