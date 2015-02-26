@@ -59,7 +59,7 @@
                     </tr>                       
                     </thead>
                     <tbody>
-                    <c:forEach items="${members}" var="managers">
+                    <c:forEach items="${members}" var="members">
                     <tr>
                         <td>                            
                                 ${fn:escapeXml(members.key)} 
