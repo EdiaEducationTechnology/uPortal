@@ -21,8 +21,11 @@ package org.jasig.portal.utils.web;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +49,8 @@ import org.jasig.portal.EntityIdentifier;
 import org.jasig.portal.UserPreferencesManager;
 import org.jasig.portal.layout.IUserLayoutManager;
 import org.jasig.portal.layout.UserLayoutManagerFactory;
+import org.jasig.portal.persondir.ILocalAccountDao;
+import org.jasig.portal.persondir.ILocalAccountPerson;
 import org.jasig.portal.portlet.om.IPortalCookie;
 import org.jasig.portal.rest.ImportExportController;
 import org.jasig.portal.security.IPerson;
@@ -82,12 +87,20 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     private IUserInstanceManager userInstanceManager;
     
     @Autowired
+    protected ILocalAccountDao localAccountDao;
+    
+    @Autowired
     @Qualifier("identitySwapperManager")
     private IdentitySwapperManager identitySwapper;
 
-    
-    
+
     @Autowired
+	public void setLocalAccountDao(ILocalAccountDao localAccountDao) {
+		this.localAccountDao = localAccountDao;
+	}
+
+
+	@Autowired
     public void setPersonManager(IPersonManager personManager) {
         this.personManager = personManager;
     }
@@ -118,6 +131,22 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     				
     				if (StringUtils.isNotEmpty(conextAccessToken)) {
     					IPerson person = this.personManager.getPerson(request);
+    					ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(person.getUserName());
+    					String fullName = person.getUserName();
+    					String loginTime = "";
+    					try {
+    						if (person.getFullName() !=null && !person.getFullName().isEmpty()) {
+    							fullName = person.getFullName();
+    						}
+    						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    						Date date = new Date();
+    						loginTime = dateFormat.format(date);
+    					}catch (NullPointerException e) {
+    						e.printStackTrace();
+    					}
+    					localAccountPerson.setAttribute("fullName", fullName);
+    					localAccountPerson.setAttribute("loginTime", loginTime);
+    					this.localAccountDao.updateAccount(localAccountPerson);
     					
     					try {
     						handleSurfTeamStateSync(person, request, response);
