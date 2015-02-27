@@ -124,21 +124,20 @@ public abstract class TeamTabController {
 				Iterator<IGroupMember> surfSubSubGroupUsers = surfSubSubGroup.getAllMembers();
         		while (surfSubSubGroupUsers.hasNext()) {
         			IGroupMember user = surfSubSubGroupUsers.next();
-        			//IPerson person = (IPerson) user;
+   
         			ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(user.getKey());
-        			final IPersonAttributes personAttributes = this.personAttributeDao.getPerson(user.getKey());
-        			
-					if (roleGroup.getName().split(":")[0].equals("managers_urn")) {
+        			String fullName = (String) localAccountPerson.getAttributeValue("fullName");
+        			String loginTime = (String) localAccountPerson.getAttributeValue("loginTime");
+					
+        			if (roleGroup.getName().split(":")[0].equals("managers_urn")) {
 						//if this is manager role group and managers must be included
 						if (includeManagers) {
-							//user key == user name
-							users.put(personAttributes.getName(), "false");
+							users.put(fullName, loginTime);
 						}
 					} else if (roleGroup.getName().split(":")[0].equals("members_urn")) {
 						//if this is member role group and members must be included
-						if (includeMembers) {
-							//user key == user name
-							users.put(personAttributes.getName(), "false");
+						if (includeMembers) {						
+							users.put(fullName, loginTime);
 						}
 					}      			
         		}
