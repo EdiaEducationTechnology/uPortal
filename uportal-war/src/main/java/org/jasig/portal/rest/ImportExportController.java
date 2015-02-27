@@ -187,28 +187,11 @@ public class ImportExportController {
 	    	//becomes fragment owner    		
 			if(this.identitySwapperManager.canImpersonateUser(userName, fragment.getOwnerId())) {
 				try {
-//					ServletExternalContext extContext = new ServletExternalContext(request.getServletContext(), request, response);
-
-				    
-					//extContext.getNativeContext();
-//					RequestContextHolder.setRequestContext(extContext);
-//			        final RequestContext requestContext = RequestContextHolder.getRequestContext();
-//			        final ExternalContext externalContext = requestContext.getExternalContext();
-					//portletService.
-//					PortletRequest portletRequest = (PortletRequest) extContext.getNativeRequest();
-//					this.identitySwapperManager.impersonateUser(portletRequest, person.getUserName(), fragment.getOwnerId());
-
-//				    final String SWAP_TARGET_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_UID";
-//				    final String SWAP_TARGET_PROFILE = IdentitySwapperManagerImpl.class.getName() + ".SWAP_TARGET_PROFILE";
-//				    final String SWAP_ORIGINAL_UID = IdentitySwapperManagerImpl.class.getName() + ".SWAP_ORIGINAL_UID";					
-//					session.setAttribute(SWAP_TARGET_UID, fragment.getOwnerId()); //, PortletSession.APPLICATION_SCOPE
-//					session.setAttribute(SWAP_TARGET_PROFILE, "default"); //PortletSession.APPLICATION_SCOPE
 					
-	
-					
-                	IUserInstance ui = userInstanceManager.getUserInstance(request);
-                	UserPreferencesManager upm = (UserPreferencesManager) ui.getPreferencesManager();
-                	//final IUserInstance userInstance = this.userInstanceManager.
+                	//IUserInstance ui = userInstanceManager.getUserInstance(request);
+                	//UserPreferencesManager upm = (UserPreferencesManager) ui.getPreferencesManager();
+                	
+//                	final IUserInstance userInstance = this.userInstanceManager.
                 	//final ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(fragment.getOwnerId());
                 	
                 	//IUserLayoutManager userLayoutManager = userLayoutManagerFactory.getUserLayoutManager(targetPerson, upm.getUserProfile());

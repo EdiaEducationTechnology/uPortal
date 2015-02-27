@@ -44,16 +44,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.jasig.portal.EntityIdentifier;
 import org.jasig.portal.UserPreferencesManager;
-import org.jasig.portal.groups.ICompositeGroupService;
 import org.jasig.portal.layout.IUserLayoutManager;
 import org.jasig.portal.layout.UserLayoutManagerFactory;
 import org.jasig.portal.portlet.om.IPortalCookie;
-import org.jasig.portal.portlets.groupselector.EntityEnum;
 import org.jasig.portal.rest.ImportExportController;
 import org.jasig.portal.security.IPerson;
 import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.security.IdentitySwapperManager;
-import org.jasig.portal.services.GroupService;
 import org.jasig.portal.user.IUserInstance;
 import org.jasig.portal.user.IUserInstanceManager;
 import org.json.JSONArray;
@@ -61,7 +58,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.google.common.collect.Lists;
@@ -73,7 +69,7 @@ import com.google.common.collect.Lists;
  * @version $Id$
  */
 public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
-
+	
     private IPersonManager personManager;
 
     @Autowired
@@ -107,7 +103,7 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+    	
     	//if(!identitySwapper.isImpersonating(request)) {
     		HttpSession session = request.getSession(false);
     		
