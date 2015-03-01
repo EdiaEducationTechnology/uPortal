@@ -135,7 +135,7 @@ public abstract class TeamTabController {
 	        			}
 	        			loginTime = (String) localAccountPerson.getAttributeValue("loginTime");
         			} else {
-        				fullName = (String) localAccountPerson.getName();
+        				fullName = (String) user.getKey();
         				loginTime = "N/A";
         			}
         			if (roleGroup.getName().split(":")[0].equals("managers_urn")) {
