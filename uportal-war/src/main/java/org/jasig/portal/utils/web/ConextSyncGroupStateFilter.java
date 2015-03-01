@@ -137,6 +137,10 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     					try {
     						if (person.getFullName() !=null && !person.getFullName().isEmpty()) {
     							fullName = person.getFullName();
+    						} else {
+    							if (person.getAttributeMap().containsKey("givenName") || person.getAttributeMap().containsKey("sn")) {
+    								fullName = person.getAttribute("givenName")  + " " + person.getAttribute("sn");
+    							}
     						}
     						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     						Date date = new Date();
