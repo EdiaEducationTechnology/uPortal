@@ -141,12 +141,17 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     						Date date = new Date();
     						loginTime = dateFormat.format(date);
+    						
+    						if (localAccountPerson == null) {
+        						localAccountPerson = this.localAccountDao.createPerson(person.getUserName());    						
+        					}
+        					localAccountPerson.setAttribute("fullName", fullName);
+        					localAccountPerson.setAttribute("loginTime", loginTime);
+        					this.localAccountDao.updateAccount(localAccountPerson);
     					}catch (NullPointerException e) {
     						e.printStackTrace();
     					}
-    					localAccountPerson.setAttribute("fullName", fullName);
-    					localAccountPerson.setAttribute("loginTime", loginTime);
-    					this.localAccountDao.updateAccount(localAccountPerson);
+    	
     					
     					try {
     						handleSurfTeamStateSync(person, request, response);
