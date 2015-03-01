@@ -133,6 +133,8 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     					IPerson person = this.personManager.getPerson(request);
     					ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(person.getUserName());
     					String fullName = person.getUserName();
+    					String sn = "";
+    					String givenName = "";
     					String loginTime = "";
     					try {
     						if (person.getFullName() !=null && !person.getFullName().isEmpty()) {
@@ -140,6 +142,8 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     						} else {
     							if (person.getAttributeMap().containsKey("givenName") || person.getAttributeMap().containsKey("sn")) {
     								fullName = person.getAttribute("givenName")  + " " + person.getAttribute("sn");
+    								givenName = (String) person.getAttribute("givenName");
+    								sn = (String) person.getAttribute("sn");
     							}
     						}
     						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -151,6 +155,9 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
         					}
         					localAccountPerson.setAttribute("fullName", fullName);
         					localAccountPerson.setAttribute("loginTime", loginTime);
+        					localAccountPerson.setAttribute("givenName", givenName);
+        					localAccountPerson.setAttribute("sn", sn);
+        					
         					this.localAccountDao.updateAccount(localAccountPerson);
     					}catch (NullPointerException e) {
     						e.printStackTrace();
