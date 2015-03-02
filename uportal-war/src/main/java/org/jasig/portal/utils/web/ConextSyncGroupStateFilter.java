@@ -139,6 +139,8 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     					try {
     						if (person.getFullName() !=null && !person.getFullName().isEmpty()) {
     							fullName = person.getFullName();
+								givenName = (String) person.getAttribute("givenName");
+								sn = (String) person.getAttribute("sn");
     						} else {
     							if (person.getAttributeMap().containsKey("givenName") || person.getAttributeMap().containsKey("sn")) {
     								fullName = person.getAttribute("givenName")  + " " + person.getAttribute("sn");
