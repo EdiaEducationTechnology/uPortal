@@ -54,7 +54,7 @@
                                 User
                         </th>
                         <th>
-                                Online
+                                Last Logon
                         </th>
                     </tr>                       
                     </thead>
