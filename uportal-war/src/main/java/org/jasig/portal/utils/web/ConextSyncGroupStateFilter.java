@@ -187,13 +187,17 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     		return false;
     	}	
     }
-    protected void updateLocalAccount(IPerson person) {
-			ILocalAccountPerson localAccount = this.localAccountDao.getPerson(person.getUserName());
+    protected void updateLocalAccount(IPerson person) {			
 			String fullName = "";
 			String sn = "";
 			String givenName = "";
 			String loginTime = "";
 			String displayName = "";
+			
+			ILocalAccountPerson localAccount = this.localAccountDao.getPerson(person.getUserName());
+			if (localAccount == null) {
+				localAccount = this.localAccountDao.createPerson(person.getUserName());
+			}
 			
 			if (isValidString(person.getFullName()) ) {
 				fullName = person.getFullName();				
