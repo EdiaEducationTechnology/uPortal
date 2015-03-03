@@ -131,41 +131,9 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     				
     				if (StringUtils.isNotEmpty(conextAccessToken)) {
     					IPerson person = this.personManager.getPerson(request);
-    					ILocalAccountPerson localAccountPerson = this.localAccountDao.getPerson(person.getUserName());
-    					String fullName = person.getUserName();
-    					String sn = "";
-    					String givenName = "";
-    					String loginTime = "";
-    					try {
-    						if (person.getFullName() !=null && !person.getFullName().isEmpty()) {
-    							fullName = person.getFullName();
-								givenName = (String) person.getAttribute("givenName");
-								sn = (String) person.getAttribute("sn");
-    						} else {
-    							if (person.getAttributeMap().containsKey("givenName") || person.getAttributeMap().containsKey("sn")) {
-    								fullName = person.getAttribute("givenName")  + " " + person.getAttribute("sn");
-    								givenName = (String) person.getAttribute("givenName");
-    								sn = (String) person.getAttribute("sn");
-    							}
-    						}
-    						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    						Date date = new Date();
-    						loginTime = dateFormat.format(date);
-    						
-    						if (localAccountPerson == null) {
-        						localAccountPerson = this.localAccountDao.createPerson(person.getUserName());    						
-        					}
-        					localAccountPerson.setAttribute("fullName", fullName);
-        					localAccountPerson.setAttribute("loginTime", loginTime);
-        					localAccountPerson.setAttribute("givenName", givenName);
-        					localAccountPerson.setAttribute("sn", sn);
-        					
-        					this.localAccountDao.updateAccount(localAccountPerson);
-    					}catch (NullPointerException e) {
-    						e.printStackTrace();
-    					}
-    	
-    					
+ 
+    					this.updateLocalAccount(person);    					
+
     					try {
     						handleSurfTeamStateSync(person, request, response);
     					} catch (JSONException | XMLStreamException e) {
@@ -184,7 +152,111 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
+    
+    protected boolean isValidString(String value) {
+    	if (value == null) {
+    		return false;
+    	} else if (value.trim().isEmpty()) {
+    		return false;
+    	} else {
+    		return true;
+    	}
+    }
+    
+    protected boolean hasValidAttribute(IPerson person, String attribute) {
+    	if (person.getAttributeMap().containsKey(attribute)) {
+    		String value = (String) person.getAttribute(attribute);
+    		if (isValidString(value)) {
+    			return true;
+    		} else {
+    			return false;
+    		}
+    	} else {
+    		return false;
+    	}	
+    }
+    protected boolean hasValidAttribute(ILocalAccountPerson person, String key) {
+    	if (person.getAttributes().containsKey(key)) {
+    		String value = (String) person.getAttributeValue(key);
+    		if (isValidString(value)) {
+    			return true;
+    		} else {
+    			return false;
+    		}
+    	} else {
+    		return false;
+    	}	
+    }
+    protected void updateLocalAccount(IPerson person) {
+			ILocalAccountPerson localAccount = this.localAccountDao.getPerson(person.getUserName());
+			String fullName = "";
+			String sn = "";
+			String givenName = "";
+			String loginTime = "";
+			String displayName = "";
+			
+			if (isValidString(person.getFullName()) ) {
+				fullName = person.getFullName();				
+			}
+			if (hasValidAttribute(person, "sn") ) {
+				sn = (String) person.getAttribute("sn");
+			}
+			if (hasValidAttribute(person, "givenName") ) {
+				givenName = (String) person.getAttribute("givenName");
+			}
+			if (hasValidAttribute(person, "displayName") ) { 
+				displayName = (String) person.getAttribute("displayName");
+			}
+			
+			if (isValidString(sn)) {
+				if (!hasValidAttribute(localAccount, "sn")) {					
+					localAccount.setAttribute("sn", sn);					
+				}
+			}
+			if (isValidString(givenName)) {
+				if (!hasValidAttribute(localAccount, "givenName")) {					
+					localAccount.setAttribute("givenName", givenName);					
+				}
+			}
+			if (isValidString(fullName)) {
+				if (!hasValidAttribute(localAccount, "fullName")) {					
+					localAccount.setAttribute("fullName", fullName);					
+				}
+			} else {
+				if (!hasValidAttribute(localAccount, "fullName")) {	
+					if (isValidString(givenName) && isValidString(sn)) {
+						localAccount.setAttribute("fullName", givenName + " " + sn);	
+					}
+				}
+			}
+			if (isValidString(displayName)) {
+				if (!hasValidAttribute(localAccount, "displayName")) {					
+					localAccount.setAttribute("displayName", displayName);					
+				}
+			} else {
+				if (!hasValidAttribute(localAccount, "displayName")) {	
+					if (isValidString(givenName) && isValidString(sn)) {
+						localAccount.setAttribute("displayName", givenName + " " + sn);	
+					} else {
+						if (isValidString(person.getUserName())) {
+							localAccount.setAttribute("displayName", person.getUserName());
+						} else if (isValidString(person.getName())) {
+							localAccount.setAttribute("displayName", person.getName());
+						}
+					}
+				}
+			}
+			
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date date = new Date();
+			loginTime = dateFormat.format(date);
+			localAccount.setAttribute("loginTime", loginTime);
+			try {
+				this.localAccountDao.updateAccount(localAccount);
+			}catch (NullPointerException e) {
+				e.printStackTrace();
+			}
+    }
 
     private void handleSurfTeamStateSync(IPerson person, HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
         String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
