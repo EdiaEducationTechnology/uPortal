@@ -22,11 +22,11 @@
                 <table class="portlet-table table table-hover">
                     <thead>
                      <tr>
-                        <th style="width: 80%">                            
+                        <th style="width: 60%">                            
                                 User
                         </th>
                         <th>
-                                Online
+                                Last Logon
                         </th>
                     </tr>                       
                     </thead>
@@ -50,7 +50,7 @@
                 <table class="portlet-table table table-hover">
                     <thead>
                      <tr>
-                        <th style="width: 80%">                          
+                        <th style="width: 60%">                          
                                 User
                         </th>
                         <th>
