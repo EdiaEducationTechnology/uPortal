@@ -21,7 +21,6 @@ package  org.jasig.portal.security.mvc;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -36,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -52,16 +50,11 @@ import org.jasig.portal.security.IPersonManager;
 import org.jasig.portal.url.IPortalUrlBuilder;
 import org.jasig.portal.url.IPortalUrlProvider;
 import org.jasig.portal.url.UrlType;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import com.google.common.collect.Lists;
 
 /**
  * Receives the username and password and tries to authenticate the user.
@@ -89,9 +82,9 @@ public class LoginController {
     private IPortalUrlProvider portalUrlProvider;
     private IPersonManager personManager;
     
-    private static final String CONEXT_CLIENT_ID = PropertiesManager.getProperty("org.jasig.portal.surfconext.client.id");
+    private static final String CONEXT_OAUTH_CLIENT_ID = PropertiesManager.getProperty("org.jasig.portal.surfconext.oauth.client.id");
 
-    private static final String CONEXT_OAUTH_KEY = PropertiesManager.getProperty("org.jasig.portal.surfconext.oauth.key");
+    private static final String CONEXT_OAUTH_CLIENT_SECRET = PropertiesManager.getProperty("org.jasig.portal.surfconext.oauth.client.secret");
 
     @Autowired
     private ImportExportController importExportController;
@@ -192,7 +185,7 @@ public class LoginController {
 			//  http://uportal.edia.nl/edia-conext-clientwebapp/start.html
 			OAuthClientRequest authReq = OAuthClientRequest
 					
-			   .authorizationLocation("https://api.surfconext.nl/v1/oauth2/authorize")
+			   .authorizationLocation("https://voot.surfconext.nl/v1/oauth2/authorize")
 			   .setClientId("https://uportal.edia.nl")
 			   .setResponseType("code")
 			   .setScope("read")
@@ -214,10 +207,10 @@ public class LoginController {
 		String code = oar.getCode();
 		
 		OAuthClientRequest request = OAuthClientRequest
-                .tokenLocation("https://api.surfconext.nl/v1/oauth2/token")
+                .tokenLocation("https://voot.surfconext.nl/v1/oauth2/token")
                 .setGrantType(GrantType.AUTHORIZATION_CODE)
-                .setClientId(CONEXT_CLIENT_ID)
-                .setClientSecret(CONEXT_OAUTH_KEY)
+                .setClientId(CONEXT_OAUTH_CLIENT_ID)
+                .setClientSecret(CONEXT_OAUTH_CLIENT_SECRET)
                 .setRedirectURI("https://uportal.edia.nl/uPortal/Token")
                 .setCode(code)
                 .buildQueryMessage();

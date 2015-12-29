@@ -265,81 +265,88 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
     private void handleSurfTeamStateSync(IPerson person, HttpServletRequest request, HttpServletResponse response) throws ClientProtocolException, IOException, JSONException, XMLStreamException {
         String conextAccessToken = (String) request.getSession(false).getAttribute("conext_access_token");
 
-        if (StringUtils.isNotEmpty(conextAccessToken)) {
+		if (StringUtils.isNotEmpty(conextAccessToken)) {
             Map<String, String> groupIdToRoleMap = new HashMap<String, String>();
             Map<String, String> groupIdToToolPlacementId = new HashMap<String, String>();
-            
+
             CloseableHttpClient httpclient = HttpClients.createDefault();
 
-            HttpGet getGroups = new HttpGet("https://api.surfconext.nl/v1/social/rest/groups/@me");
+            HttpGet getGroups = new HttpGet("https://voot.surfconext.nl/v1/social/rest/groups/@me");
 
             getGroups.setHeader("Authorization", "Bearer " + conextAccessToken);
             CloseableHttpResponse executeGetGroups = httpclient.execute(getGroups);
             HttpEntity getGroupsResponse = executeGetGroups.getEntity();
 
-            JSONObject jsonOjectFromHttpEntity = getJSONOjectFromHttpEntity(getGroupsResponse);
+            JSONArray jsonOjectFromHttpEntity = getJSONArrayFromHttpEntity(getGroupsResponse);
+			boolean isImpersonating = identitySwapper.isImpersonating(request);
 
-            if (jsonOjectFromHttpEntity.has("entry")) {
-                JSONArray groups = jsonOjectFromHttpEntity.getJSONArray("entry");
+			handleVootGroupResponse(person, isImpersonating, groupIdToRoleMap, groupIdToToolPlacementId, jsonOjectFromHttpEntity);
 
-                for (int i = 0; i < groups.length(); i++) {
-                    JSONObject group = (JSONObject) groups.get(i);
-                    String groupId = group.getString("id");
-                    String vootRole = group.getString("voot_membership_role");
- 
-                    // if group not found, then
-                    String managerGroupId = "managers_" + groupId;
-                    String memberGroupId = "members_" + groupId;
-                    String ownerGroupId = "owners_" + groupId;
-                    
-                    //if current user not impersonating fragment owner
-                    if(!identitySwapper.isImpersonating(request)) {
- 
-	                    
-	                    boolean isMember = StringUtils.equals("member", vootRole);
-	                    boolean isManager = StringUtils.equals("manager", vootRole) || StringUtils.equals("admin", vootRole);                              
-	                    
-	                    importExportController.createOwnerIfNotFound(managerGroupId);
-	//                    String ownerName = importExportController.generateFragmentOwnerName(managerGroupId);
-	                    ArrayList userList = new ArrayList();
-	//                    userList.add(ownerName);
-	                    
-	                    importExportController.createGroup(managerGroupId, new ArrayList(), userList, person, isManager);
-	                    importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person, isMember);
-	                    importExportController.createGroup(ownerGroupId, new ArrayList(), new ArrayList(), person, false);
-	                    
-	                    importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId, ownerGroupId), new ArrayList(), person, false);
-	                    importExportController.createGroup("surfteams", Arrays.asList(groupId), new ArrayList(), person, false);
-	                    
-	                    importExportController.updateGroupMembership("Everyone", Arrays.asList("surfteams"), new ArrayList(), person);
-	                    importExportController.updateGroupMembership("Subscribable Fragments", Arrays.asList(memberGroupId, ownerGroupId), new ArrayList(), person);
-	                    
-	                    EntityIdentifier[] rootGroup = importExportController.getGroupIdentifiers(groupId);
-	                    if(rootGroup.length != 1) {
-	                        logger.error("Expected one group but found multiple while querying for: " + groupId);
-	                    } else {
-	                        EntityIdentifier actualId = rootGroup[0];
-	                        String actualIdKey = actualId.getKey();
-	                        groupIdToRoleMap.put(actualIdKey, vootRole);
-	                        groupIdToToolPlacementId.put(actualIdKey, groupId);
-	                    }
-                    } else { //if current user is impersonating fragment owner or any other user
-                    	//adds fragment owner to the fragment owners group when it gets first time impersonated
-                    	importExportController.createOwnerIfNotFound(groupId);
-                    	String ownerUserName = importExportController.generateFragmentOwnerName(groupId);
-                    	importExportController.updateGroupMembership(ownerGroupId, new ArrayList(), Arrays.asList(ownerUserName), person);
-                    }
-                }
 
-            }
-            
-            HttpSession session = request.getSession();
+			HttpSession session = request.getSession();
             session.setAttribute("groupIdToRoleMap", groupIdToRoleMap);
             session.setAttribute("groupIdToToolPlacementId", groupIdToToolPlacementId);
         }
     }
 
-    private JSONObject getJSONOjectFromHttpEntity(HttpEntity entity) throws IOException, JSONException {
+	protected void handleVootGroupResponse(IPerson person, boolean isImpersonating, Map<String, String> groupIdToRoleMap, Map<String, String> groupIdToToolPlacementId, JSONArray groups) throws JSONException, IOException, XMLStreamException {
+		//remove "entry" level
+		if (groups.length() != 0) {
+            //JSONArray groups = jsonOjectFromHttpEntity.getJSONArray("entry");
+
+            for (int i = 0; i < groups.length(); i++) {
+                JSONObject group = (JSONObject) groups.get(i);
+                String groupId = group.getString("id");
+                //change reading role
+                String vootRole = group.getJSONObject("membership").getString("basic");
+
+                // if group not found, then
+                String managerGroupId = "managers_" + groupId;
+                String memberGroupId = "members_" + groupId;
+                String ownerGroupId = "owners_" + groupId;
+
+                //if current user not impersonating fragment owner
+                if(!isImpersonating) {
+
+                    boolean isMember = StringUtils.equals("member", vootRole);
+                    boolean isManager = StringUtils.equals("manager", vootRole) || StringUtils.equals("admin", vootRole);
+
+                    importExportController.createOwnerIfNotFound(managerGroupId);
+//                    String ownerName = importExportController.generateFragmentOwnerName(managerGroupId);
+                    ArrayList userList = new ArrayList();
+//                    userList.add(ownerName);
+
+                    importExportController.createGroup(managerGroupId, new ArrayList(), userList, person, isManager);
+                    importExportController.createGroup(memberGroupId, new ArrayList(), new ArrayList(), person, isMember);
+                    importExportController.createGroup(ownerGroupId, new ArrayList(), new ArrayList(), person, false);
+
+                    importExportController.createGroup(groupId, Lists.newArrayList(managerGroupId, memberGroupId, ownerGroupId), new ArrayList(), person, false);
+                    importExportController.createGroup("surfteams", Arrays.asList(groupId), new ArrayList(), person, false);
+
+                    importExportController.updateGroupMembership("Everyone", Arrays.asList("surfteams"), new ArrayList(), person);
+                    importExportController.updateGroupMembership("Subscribable Fragments", Arrays.asList(memberGroupId, ownerGroupId), new ArrayList(), person);
+
+                    EntityIdentifier[] rootGroup = importExportController.getGroupIdentifiers(groupId);
+                    if(rootGroup.length != 1) {
+                        logger.error("Expected one group but found multiple while querying for: " + groupId);
+                    } else {
+                        EntityIdentifier actualId = rootGroup[0];
+                        String actualIdKey = actualId.getKey();
+                        groupIdToRoleMap.put(actualIdKey, vootRole);
+                        groupIdToToolPlacementId.put(actualIdKey, groupId);
+                    }
+                } else { //if current user is impersonating fragment owner or any other user
+                    //adds fragment owner to the fragment owners group when it gets first time impersonated
+                    importExportController.createOwnerIfNotFound(groupId);
+                    String ownerUserName = importExportController.generateFragmentOwnerName(groupId);
+                    importExportController.updateGroupMembership(ownerGroupId, new ArrayList(), Arrays.asList(ownerUserName), person);
+                }
+            }
+
+        }
+	}
+
+	private JSONArray getJSONArrayFromHttpEntity(HttpEntity entity) throws IOException, JSONException {
         InputStream content = entity.getContent();
 
         StringBuilder b = new StringBuilder();
@@ -347,7 +354,6 @@ public class ConextSyncGroupStateFilter extends OncePerRequestFilter {
         for (String line : readLines) {
             b.append(line);
         }
-        JSONObject obj = new JSONObject(b.toString());
-        return obj;
+        return new JSONArray(b.toString());
     }
 }
